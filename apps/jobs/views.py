@@ -22,13 +22,36 @@ class JobListView(LoginRequiredMixin, ListView):
     context_object_name = "jobs"
 
     def get_queryset(self):
-        return Job.objects.filter(is_active=True)
+        qs = Job.objects.filter(is_active=True)
+        q = self.request.GET.get("q", "").strip()
+        status = self.request.GET.get("status", "").strip()
+        employment_type = self.request.GET.get("employment_type", "").strip()
+        location = self.request.GET.get("location", "").strip()
+
+        if q:
+            qs = qs.filter(Q(title__icontains=q) | Q(department__icontains=q))
+        if status:
+            qs = qs.filter(status=status)
+        if employment_type:
+            qs = qs.filter(employment_type=employment_type)
+        if location:
+            qs = qs.filter(location__icontains=location)
+
+        return qs.order_by("-created_at")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["pending_jd_review_count"] = JDImportFile.objects.filter(
             status=JDImportFile.Status.EXTRACTED
         ).count()
+        context["status_choices"] = Job.JobStatus.choices
+        context["employment_type_choices"] = Job.EmploymentType.choices
+        context["current_filters"] = {
+            "q": self.request.GET.get("q", ""),
+            "status": self.request.GET.get("status", ""),
+            "employment_type": self.request.GET.get("employment_type", ""),
+            "location": self.request.GET.get("location", ""),
+        }
         return context
 
 

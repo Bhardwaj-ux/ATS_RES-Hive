@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load resume_extras %}
 {% block title %}{{ application.full_name }} | ATS Workspace{% endblock %}
 
 {% block extra_head %}
@@ -365,7 +365,7 @@
         <li data-file-id="{{ resume.pk }}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
           <a href="{{ resume.file.url }}" target="_blank" rel="noopener noreferrer" class="text-link">{{ resume.original_filename }}</a>
-          <span class="file-meta">{{ resume.file_size }} B</span>
+          <span class="file-meta">{{ resume.file_size|to_mb }}</span>
         </li>
         {% endfor %}
       </ul>
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function () {
           li.setAttribute('data-file-id', data.file.id);
           li.innerHTML = fileIconSvg() +
             '<a href="' + data.file.url + '" target="_blank" rel="noopener noreferrer" class="text-link"></a>' +
-            '<span class="file-meta">' + data.file.size + ' B</span>';
+            '<span class="file-meta">' + (data.file.size / 1024 / 1024).toFixed(2) + ' MB</span>';
           li.querySelector('a').textContent = data.file.name;
           resumeList.appendChild(li);
           if (window.ATSNotify) {

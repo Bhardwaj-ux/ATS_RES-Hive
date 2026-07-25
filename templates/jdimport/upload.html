@@ -4,6 +4,31 @@
 {% block extra_head %}
 
 <style>
+    .back-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        margin-bottom: 14px;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .back-icon-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .back-icon-btn:hover {
+        background: var(--surface-soft);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
     .jd-dropzone {
         border: 2px dashed var(--border);
         border-radius: var(--radius-lg);
@@ -47,10 +72,9 @@
         border-radius: 16px;
         background: var(--surface);
         padding: 14px 16px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 6px 16px;
-        align-items: center;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 
     .jd-file-name {
@@ -59,46 +83,64 @@
         word-break: break-word;
     }
 
-    .jd-file-status {
-        grid-column: 1 / -1;
-        font-size: 0.86rem;
-        color: var(--text-muted);
-    }
-
-    .jd-stage-track {
+    .jd-progress-row {
         display: flex;
-        gap: 8px;
+        align-items: center;
+        gap: 10px;
     }
 
-    .jd-stage {
-        font-size: 0.76rem;
-        font-weight: 700;
-        padding: 5px 10px;
+    .jd-progress-track {
+        flex: 1;
+        height: 8px;
         border-radius: 999px;
-        border: 1px solid var(--border);
-        color: var(--text-muted);
         background: var(--surface-alt);
+        border: 1px solid var(--border);
+        overflow: hidden;
     }
 
-    .jd-stage.active {
-        color: var(--primary);
-        border-color: var(--primary);
-        background: var(--primary-soft);
+    .jd-progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: var(--primary);
+        transition: width 320ms ease, background 320ms ease;
     }
 
-    .jd-stage.done {
+    .jd-progress-fill.state-done {
+        background: #22c55e;
+    }
+
+    .jd-progress-fill.state-failed {
+        background: #ef4444;
+    }
+
+    .jd-progress-percent {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        min-width: 38px;
+        text-align: right;
+    }
+
+    .jd-stage-text {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 260ms ease, max-height 260ms ease;
+    }
+
+    .jd-stage-text.visible {
+        opacity: 1;
+        max-height: 20px;
+    }
+
+    .jd-stage-text.state-done {
         color: #166534;
-        border-color: #86efac;
-        background: var(--success-soft);
     }
 
-    .jd-stage.failed {
-        color: #b91c1c;
-        border-color: #fca5a5;
-        background: var(--danger-soft);
-    }
-
-    .error-text {
+    .jd-stage-text.state-failed {
         color: #b91c1c;
     }
 
@@ -117,14 +159,19 @@
 
 {% endblock %}
 {% block content %}
+<a href="{% url 'jobs:list' %}" class="back-icon-btn" title="Back to Job Roles">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="m12 19-7-7 7-7" />
+        <path d="M19 12H5" />
+    </svg>
+</a>
+
 <section class="page-header">
     <div>
         <h1>Bulk Import Job Descriptions</h1>
-        <p>Upload up to 10 JD files (PDF or DOCX) at once. Each file is converted to Markdown and processed with AI to
+        <p>Upload up to 10 JD files (PDF or DOCX) at once. Each file is converted to text and processed with AI to
             extract job details automatically.</p>
-    </div>
-    <div class="page-actions">
-        <a href="{% url 'jobs:list' %}" class="btn btn-secondary">Back to Job Roles</a>
     </div>
 </section>
 
@@ -177,6 +224,7 @@
         if (!dropZone || !fileInput) return;
 
         let selectedFiles = [];
+        let fadeTimers = {};
 
         function renderFileList() {
             fileListEl.innerHTML = "";
@@ -186,35 +234,42 @@
                 row.id = `jd-row-${index}`;
                 row.innerHTML = `
         <div class="jd-file-name">${entry.file.name}</div>
-        <div class="jd-stage-track">
-          <span class="jd-stage" data-stage="upload">Upload</span>
-          <span class="jd-stage" data-stage="convert">Convert</span>
-          <span class="jd-stage" data-stage="extract">Extract</span>
-          <span class="jd-stage" data-stage="store">Store</span>
+        <div class="jd-progress-row">
+          <div class="jd-progress-track"><div class="jd-progress-fill" data-fill></div></div>
+          <span class="jd-progress-percent" data-percent>0%</span>
         </div>
-        <div class="jd-file-status">Queued</div>
+        <div class="jd-stage-text" data-stagetext></div>
       `;
                 fileListEl.appendChild(row);
             });
             startBtn.disabled = selectedFiles.length === 0;
         }
 
-        function setStage(index, stage, state) {
+        function setProgress(index, percent, state) {
             const row = document.getElementById(`jd-row-${index}`);
             if (!row) return;
-            const el = row.querySelector(`.jd-stage[data-stage="${stage}"]`);
-            if (el) {
-                el.classList.remove("pending", "active", "done", "failed");
-                el.classList.add(state);
-            }
+            const fill = row.querySelector('[data-fill]');
+            const percentEl = row.querySelector('[data-percent]');
+            fill.style.width = percent + '%';
+            fill.classList.remove('state-done', 'state-failed');
+            if (state) fill.classList.add('state-' + state);
+            percentEl.textContent = percent + '%';
         }
 
-        function setRowMessage(index, text, isError) {
+        function setStageText(index, text, state, persist) {
             const row = document.getElementById(`jd-row-${index}`);
             if (!row) return;
-            const msg = row.querySelector(".jd-file-status");
-            msg.textContent = text;
-            msg.classList.toggle("error-text", !!isError);
+            const el = row.querySelector('[data-stagetext]');
+            if (fadeTimers[index]) { clearTimeout(fadeTimers[index]); }
+            el.textContent = text;
+            el.classList.remove('state-done', 'state-failed');
+            if (state) el.classList.add('state-' + state);
+            el.classList.add('visible');
+            if (!persist) {
+                fadeTimers[index] = setTimeout(function () {
+                    el.classList.remove('visible');
+                }, 1800);
+            }
         }
 
         function addFiles(fileArray) {
@@ -248,7 +303,8 @@
         }
 
         async function uploadFile(batchId, entry, index) {
-            setStage(index, "upload", "active");
+            setProgress(index, 10);
+            setStageText(index, "Uploading...");
             const formData = new FormData();
             formData.append("file", entry.file);
             const response = await fetch(window.JD_IMPORT_URLS.upload.replace("0", batchId), {
@@ -256,46 +312,44 @@
             });
             const data = await response.json();
             if (!response.ok || data.error) {
-                setStage(index, "upload", "failed");
-                setRowMessage(index, data.error || "Upload failed.", true);
+                setProgress(index, 100, "failed");
+                setStageText(index, data.error || "Upload failed.", "failed", true);
                 return null;
             }
-            setStage(index, "upload", "done");
+            setProgress(index, 30);
             return data.file_id;
         }
 
         async function convertFile(fileId, index) {
-            setStage(index, "convert", "active");
-            setRowMessage(index, "Converting to Markdown...");
+            setStageText(index, "Converting to text...");
+            setProgress(index, 40);
             const response = await fetch(window.JD_IMPORT_URLS.convert.replace("0", fileId), {
                 method: "POST", headers: { "X-CSRFToken": csrftoken },
             });
             const data = await response.json();
             if (!response.ok || data.error) {
-                setStage(index, "convert", "failed");
-                setRowMessage(index, data.error || "Conversion failed.", true);
+                setProgress(index, 100, "failed");
+                setStageText(index, data.error || "Conversion failed.", "failed", true);
                 return false;
             }
-            setStage(index, "convert", "done");
+            setProgress(index, 65);
             return true;
         }
 
         async function extractFile(fileId, index) {
-            setStage(index, "extract", "active");
-            setRowMessage(index, "Extracting job details with AI...");
+            setStageText(index, "Extracting job details with AI...");
+            setProgress(index, 75);
             const response = await fetch(window.JD_IMPORT_URLS.extract.replace("0", fileId), {
                 method: "POST", headers: { "X-CSRFToken": csrftoken },
             });
             const data = await response.json();
             if (!response.ok || data.error) {
-                setStage(index, "extract", "failed");
-                setStage(index, "store", "failed");
-                setRowMessage(index, data.error || "Extraction failed.", true);
+                setProgress(index, 100, "failed");
+                setStageText(index, data.error || "Extraction failed.", "failed", true);
                 return false;
             }
-            setStage(index, "extract", "done");
-            setStage(index, "store", "done");
-            setRowMessage(index, "Ready for review.");
+            setProgress(index, 100, "done");
+            setStageText(index, "Ready for review.", "done", true);
             return true;
         }
 

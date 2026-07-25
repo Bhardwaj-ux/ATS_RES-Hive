@@ -106,7 +106,10 @@
   </article>
   
   <article class="info-card">
-    <h3 class="section-title">Required Skills</h3>
+    <h3 class="section-title">Key Responsibilities</h3>
+    <div style="color: var(--text-muted); line-height: 1.7; font-size: 0.9rem;">
+      {{ job.requirements|default:"No responsibilities added yet."|safe }}
+    </div>
     {% if job.skill_list %}
     <div class="skills-cloud">
       {% for skill in job.skill_list %}
