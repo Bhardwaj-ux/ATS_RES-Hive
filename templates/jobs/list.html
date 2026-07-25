@@ -387,10 +387,9 @@
                 <input type="hidden" name="status" value="{{ current_filters.status|default:'' }}">
 
                 <ul class="glass-select-list">
-                    <li data-value="" {% if not current_filters.status %}class="active" {% endif %}>All statuses</li>
+                    <li data-value="" {% if not current_filters.status %}class="active"{% endif %}>All statuses</li>
                     {% for value, label in status_choices %}
-                    <li data-value="{{ value }}" {% if current_filters.status==value %}class="active" {% endif %}>{{
-                        label }}</li>
+                    <li data-value="{{ value }}" {% if current_filters.status == value %}class="active"{% endif %}>{{ label }}</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -413,8 +412,7 @@
                     <li data-value="" {% if not current_filters.employment_type %}class="active" {% endif %}>All types
                     </li>
                     {% for value, label in employment_type_choices %}
-                    <li data-value="{{ value }}" {% if current_filters.employment_type==value %}class="active" {% endif
-                        %}>{{ label }}</li>
+                    <li data-value="{{ value }}" {% if current_filters.employment_type == value %}class="active"{% endif %}>{{ label }}</li>
                     {% endfor %}
                 </ul>
             </div>
