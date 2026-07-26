@@ -29,63 +29,6 @@
         color: var(--primary);
     }
 
-    
-    .jd-dropzone {
-        border: 1.5px dashed var(--border);
-        border-radius: 12px;
-        padding: 22px 14px;
-        text-align: center;
-        cursor: pointer;
-        transition: 0.2s ease-in-out;
-        background: var(--surface-soft);
-        margin-top: 4px;
-        }
-
-    .jd-dropzone:hover,
-    .jd-dropzone.dragover {
-        border-color: var(--primary);
-        background: var(--primary-soft);
-        }
-
-    .jd-dropzone svg {
-        width: 26px;
-        height: 26px;
-        color: var(--text-muted);
-        margin: 0 auto 8px;
-        }
-
-    .jd-dropzone p {
-        margin: 0;
-        font-size: 0.84rem;
-        color: var(--text-muted);
-        }
-
-    .jd-dropzone .jd-dz-primary {
-        color: var(--text);
-        font-weight: 600;
-        }
-
-    .jd-dropzone input[type="file"] {
-        display: none;
-        }
-
-    .jd-dz-progress {
-        height: 4px;
-        background: var(--border);
-        border-radius: 4px;
-        margin-top: 10px;
-        overflow: hidden;
-        display: none;
-        }
-
-    .jd-dz-progress-bar {
-        height: 100%;
-        width: 0%;
-        background: var(--primary);
-        transition: width 200ms ease;
-        }
-
-
     .jd-dropzone {
         border: 2px dashed var(--border);
         border-radius: var(--radius-lg);
@@ -102,8 +45,10 @@
     }
 
     .jd-dropzone-icon {
-        font-size: 2rem;
-        margin-bottom: 10px;
+        width: 26px;
+        height: 26px;
+        color: var(--text-muted);
+        margin: 0 auto 8px;
     }
 
     .jd-dropzone-title {
@@ -134,20 +79,69 @@
         gap: 8px;
     }
 
-    .jd-file-name {
-        font-weight: 700;
-        color: var(--text);
-        word-break: break-word;
-    }
-
-    .jd-progress-row {
+    .jd-file-header {
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
-    .jd-progress-track {
+    .jd-file-serial {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-size: 0.76rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .jd-file-name {
         flex: 1;
+        min-width: 0;
+        font-weight: 700;
+        color: var(--text);
+        word-break: break-word;
+    }
+
+    .jd-file-remove {
+        flex-shrink: 0;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .jd-file-remove:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+        background: var(--danger-soft);
+    }
+
+    .jd-file-remove svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    .jd-progress-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .jd-progress-track {
+        width: 40%;
         height: 8px;
         border-radius: 999px;
         background: var(--surface-alt);
@@ -217,40 +211,24 @@
 {% endblock %}
 {% block content %}
 <a href="{% url 'jobs:list' %}" class="back-icon-btn" title="Back to Job Roles">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m12 19-7-7 7-7" />
         <path d="M19 12H5" />
     </svg>
 </a>
-<!-- 
-<section class="page-header">
-    <div>
-        <h1>Bulk Import Job Descriptions</h1>
-        <p>Upload up to 10 JD files (PDF or DOCX) at once. Each file is converted to text and processed with AI to extract job details automatically.</p>
-    </div>
-</section> -->
 
 <article class="info-card">
     <div class="jd-dropzone" id="jdDropZone">
         <svg class="jd-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8"/><path d="m8 17 4-4 4 4"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-        <p class="jd-dropzone-title">Drag &amp; drop a resume here</p>
-
-        <p class="jd-dropzone-hint">or click to browse &middot; PDF, DOC, DOCX up to 8MB each</p>
-
-        <input type="file" id="dzFileInput" accept=" .pdf, .doc, .docx">
-
-        <div class="jd-dz-progress" id="jd-dzProgress">
-            <div class="jd-dz-progress-bar" id="jd-dzProgressBar"></div>
-        </div>
+        <div class="jd-dropzone-title">Drag &amp; drop JD files here, or click to browse</div>
+        <div class="jd-dropzone-hint">PDF or DOCX only · up to 10 files · 8 MB each</div>
     </div>
-
     <input type="file" id="jdFileInput" accept=".pdf,.docx" multiple hidden>
 
     <div class="jd-file-list" id="jdFileList"></div>
 
     <div class="jd-upload-actions">
-        <button type="button" class="btn btn-primary" id="jdStartBtn" disabled>Start Fetching JDs</button>
+        <button type="button" class="btn btn-primary" id="jdStartBtn" disabled>Start Import</button>
         <span class="muted hidden" id="jdSummary"></span>
     </div>
 
@@ -289,6 +267,7 @@
 
         let selectedFiles = [];
         let fadeTimers = {};
+        let importStarted = false;
 
         function renderFileList() {
             fileListEl.innerHTML = "";
@@ -297,15 +276,32 @@
                 row.className = "jd-file-row";
                 row.id = `jd-row-${index}`;
                 row.innerHTML = `
-        <div class="jd-file-name">${entry.file.name}</div>
+        <div class="jd-file-header">
+          <span class="jd-file-serial">${index + 1}</span>
+          <div class="jd-file-name">${entry.file.name}</div>
+          ${importStarted ? "" : `<button type="button" class="jd-file-remove" data-remove-index="${index}" title="Remove file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>`}
+        </div>
         <div class="jd-progress-row">
+          <div class="jd-stage-text" data-stagetext></div>
           <div class="jd-progress-track"><div class="jd-progress-fill" data-fill></div></div>
           <span class="jd-progress-percent" data-percent>0%</span>
         </div>
-        <div class="jd-stage-text" data-stagetext></div>
       `;
                 fileListEl.appendChild(row);
             });
+
+            if (!importStarted) {
+                fileListEl.querySelectorAll("[data-remove-index]").forEach((btn) => {
+                    btn.addEventListener("click", function () {
+                        const idx = Number(btn.getAttribute("data-remove-index"));
+                        selectedFiles.splice(idx, 1);
+                        renderFileList();
+                    });
+                });
+            }
+
             startBtn.disabled = selectedFiles.length === 0;
         }
 
@@ -418,6 +414,8 @@
         }
 
         async function processAll() {
+            importStarted = true;
+            renderFileList();
             startBtn.disabled = true;
             startBtn.textContent = "Processing...";
             const batchId = await startBatch();

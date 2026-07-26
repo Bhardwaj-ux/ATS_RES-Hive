@@ -170,6 +170,7 @@
 </style>
 {% endblock %}
 
+
 {% block content %}
 <section class="page-header">
     <div>
@@ -179,9 +180,7 @@
 
 <form method="post" class="form-card">
     {% csrf_token %}
-    {% if form.non_field_errors %}
-    <div class="form-errors">{{ form.non_field_errors }}</div>
-    {% endif %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
     <div class="form-grid two-col">
         <div class="form-group">
@@ -202,33 +201,28 @@
         <div class="form-group">
             <label for="{{ form.employment_type.id_for_label }}">Job Type</label>
             {{ form.employment_type }}
-            {% if form.employment_type.errors %}<div class="form-errors">{{ form.employment_type.errors }}</div>{% endif
-            %}
+            {% if form.employment_type.errors %}<div class="form-errors">{{ form.employment_type.errors }}</div>{% endif %}
         </div>
         <div class="form-group">
             <label for="{{ form.experience_min_years.id_for_label }}">Experience Min (Years)</label>
             {{ form.experience_min_years }}
-            {% if form.experience_min_years.errors %}<div class="form-errors">{{ form.experience_min_years.errors }}
-            </div>{% endif %}
+            {% if form.experience_min_years.errors %}<div class="form-errors">{{ form.experience_min_years.errors }}</div>{% endif %}
         </div>
         <div class="form-group">
             <label for="{{ form.experience_max_years.id_for_label }}">Experience Max (Years)</label>
             {{ form.experience_max_years }}
-            {% if form.experience_max_years.errors %}<div class="form-errors">{{ form.experience_max_years.errors }}
-            </div>{% endif %}
+            {% if form.experience_max_years.errors %}<div class="form-errors">{{ form.experience_max_years.errors }}</div>{% endif %}
         </div>
     </div>
 
     <div class="form-group">
-        <label for="job-skills-input">Skills <span style="font-weight:400; color:var(--text-muted);">(ideal candidate
-                profile)</span></label>
+        <label for="job-skills-input">Skills <span style="font-weight:400; color:var(--text-muted);">(ideal candidate profile)</span></label>
         {{ form.required_skills }}
         <div class="tags-wrapper">
             <div class="tags-content" id="job-tags-content">
                 <div id="job-tag-list"></div>
                 <div class="tag-input-box">
-                    <input type="text" id="job-skills-input" class="tag-input" placeholder="Enter a skill"
-                        autocomplete="off">
+                    <input type="text" id="job-skills-input" class="tag-input" placeholder="Enter a skill" autocomplete="off">
                     <button type="button" id="job-tag-add-btn" class="tag-add-btn">+</button>
                 </div>
             </div>
@@ -242,7 +236,7 @@
         <div class="richtext-toolbar">
             <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
             <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
-            <button type="button" class="list-btn" data-cmd="insertUnorderedList" title="Bullet list">• List</button>
+            <button type="button" class="list-btn" data-cmd="insertUnorderedList" title="Bullet list">List</button>
         </div>
         <div id="requirementsEditor" class="richtext-editor" contenteditable="true"></div>
         {{ form.requirements }}
@@ -270,108 +264,104 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        /* ---- Skills tag input (fixed: was pointing at a nonexistent id) ---- */
-        var hiddenInput = document.getElementById("id_required_skills");
-        var textInput = document.getElementById("job-skills-input");
-        var addButton = document.getElementById("job-tag-add-btn");
-        var tagList = document.getElementById("job-tag-list");
+document.addEventListener("DOMContentLoaded", function () {
+    var hiddenInput = document.getElementById("id_required_skills");
+    var textInput = document.getElementById("job-skills-input");
+    var addButton = document.getElementById("job-tag-add-btn");
+    var tagList = document.getElementById("job-tag-list");
 
-        if (hiddenInput && textInput && addButton && tagList) {
-            var skills = [];
+    if (hiddenInput && textInput && addButton && tagList) {
+        var skills = [];
 
-            function uniqueSkills(items) {
-                var cleaned = []; var seen = {};
-                items.forEach(function (item) {
-                    var value = item.trim();
-                    if (!value) return;
-                    var key = value.toLowerCase();
-                    if (seen[key]) return;
-                    seen[key] = true;
-                    cleaned.push(value);
-                });
-                return cleaned;
-            }
-
-            function syncHiddenInput() { hiddenInput.value = skills.join(", "); }
-
-            function renderTags() {
-                tagList.innerHTML = "";
-                skills.forEach(function (skill, index) {
-                    var tag = document.createElement("span");
-                    tag.className = "tag-item";
-                    var text = document.createElement("span");
-                    text.textContent = skill;
-                    var removeButton = document.createElement("button");
-                    removeButton.type = "button";
-                    removeButton.className = "tag-remove";
-                    removeButton.innerHTML = "&times;";
-                    removeButton.addEventListener("click", function () {
-                        skills.splice(index, 1);
-                        syncHiddenInput();
-                        renderTags();
-                        textInput.focus();
-                    });
-                    tag.appendChild(text);
-                    tag.appendChild(removeButton);
-                    tagList.appendChild(tag);
-                });
-            }
-
-            function addSkill(rawValue) {
-                var value = rawValue.trim();
+        function uniqueSkills(items) {
+            var cleaned = []; var seen = {};
+            items.forEach(function (item) {
+                var value = item.trim();
                 if (!value) return;
-                var exists = skills.some(function (s) { return s.toLowerCase() === value.toLowerCase(); });
-                if (!exists) { skills.push(value); syncHiddenInput(); renderTags(); }
-                textInput.value = "";
-                textInput.focus();
-            }
-
-            function handleInputSubmit() {
-                var value = textInput.value.trim();
-                if (value) addSkill(value);
-            }
-
-            addButton.addEventListener("click", handleInputSubmit);
-            textInput.addEventListener("keydown", function (event) {
-                if (event.key === "Enter" || event.key === ",") {
-                    event.preventDefault();
-                    handleInputSubmit();
-                } else if (event.key === "Backspace" && textInput.value === "" && skills.length) {
-                    skills.pop(); syncHiddenInput(); renderTags();
-                }
+                var key = value.toLowerCase();
+                if (seen[key]) return;
+                seen[key] = true;
+                cleaned.push(value);
             });
-
-            var formElement = hiddenInput.closest("form");
-            if (formElement) {
-                formElement.addEventListener("submit", function () { handleInputSubmit(); syncHiddenInput(); });
-            }
-
-            skills = hiddenInput.value ? uniqueSkills(hiddenInput.value.split(",")) : [];
-            syncHiddenInput();
-            renderTags();
+            return cleaned;
         }
 
-        /* ---- Key Responsibilities rich text editor ---- */
-        var editor = document.getElementById("requirementsEditor");
-        var source = document.getElementById("id_requirements_richtext_source");
-        if (editor && source) {
-            editor.innerHTML = source.value || "";
+        function syncHiddenInput() { hiddenInput.value = skills.join(", "); }
 
-            document.querySelectorAll(".richtext-toolbar button").forEach(function (btn) {
-                btn.addEventListener("click", function () {
-                    editor.focus();
-                    document.execCommand(btn.getAttribute("data-cmd"), false, null);
+        function renderTags() {
+            tagList.innerHTML = "";
+            skills.forEach(function (skill, index) {
+                var tag = document.createElement("span");
+                tag.className = "tag-item";
+                var text = document.createElement("span");
+                text.textContent = skill;
+                var removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "tag-remove";
+                removeButton.innerHTML = "&times;";
+                removeButton.addEventListener("click", function () {
+                    skills.splice(index, 1);
+                    syncHiddenInput();
+                    renderTags();
+                    textInput.focus();
                 });
+                tag.appendChild(text);
+                tag.appendChild(removeButton);
+                tagList.appendChild(tag);
             });
-
-            var richForm = source.closest("form");
-            if (richForm) {
-                richForm.addEventListener("submit", function () {
-                    source.value = editor.innerHTML;
-                });
-            }
         }
-    });
+
+        function addSkill(rawValue) {
+            var value = rawValue.trim();
+            if (!value) return;
+            var exists = skills.some(function (s) { return s.toLowerCase() === value.toLowerCase(); });
+            if (!exists) { skills.push(value); syncHiddenInput(); renderTags(); }
+            textInput.value = "";
+            textInput.focus();
+        }
+
+        function handleInputSubmit() {
+            var value = textInput.value.trim();
+            if (value) addSkill(value);
+        }
+
+        addButton.addEventListener("click", handleInputSubmit);
+        textInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === ",") {
+                event.preventDefault();
+                handleInputSubmit();
+            } else if (event.key === "Backspace" && textInput.value === "" && skills.length) {
+                skills.pop(); syncHiddenInput(); renderTags();
+            }
+        });
+
+        var formElement = hiddenInput.closest("form");
+        if (formElement) {
+            formElement.addEventListener("submit", function () { handleInputSubmit(); syncHiddenInput(); });
+        }
+
+        skills = hiddenInput.value ? uniqueSkills(hiddenInput.value.split(",")) : [];
+        syncHiddenInput();
+        renderTags();
+    }
+
+    var editor = document.getElementById("requirementsEditor");
+    var source = document.getElementById("id_requirements_richtext_source");
+    if (editor && source) {
+        editor.innerHTML = source.value || "";
+
+        document.querySelectorAll(".richtext-toolbar button").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                editor.focus();
+                document.execCommand(btn.getAttribute("data-cmd"), false, null);
+            });
+        });
+
+        var richForm = source.closest("form");
+        if (richForm) {
+            richForm.addEventListener("submit", function () { source.value = editor.innerHTML; });
+        }
+    }
+});
 </script>
 {% endblock %}

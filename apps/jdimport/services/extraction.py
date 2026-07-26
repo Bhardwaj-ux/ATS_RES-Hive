@@ -2,6 +2,8 @@ import json
 import os
 import re
 
+import requests
+
 EXTRACTION_PROMPT = """You are extracting structured job posting data from a job description document written in Markdown syntax.
 
 Read the markdown content below and return ONLY a single valid JSON object (no markdown fences, no commentary) with exactly these keys:
@@ -24,6 +26,9 @@ Markdown content:
 ---
 """
 
+GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+
 
 class ExtractionError(Exception):
     pass
@@ -34,28 +39,41 @@ def extract_job_fields(markdown_text: str) -> dict:
     if not api_key:
         raise ExtractionError("GEMINI_API_KEY is not configured.")
 
-    try:
-        import google.generativeai as genai
-    except ImportError as exc:
-        raise ExtractionError(f"Missing Gemini dependency: {exc}") from exc
-
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
-
     prompt = EXTRACTION_PROMPT.format(content=markdown_text[:20000])
 
-    try:
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.2,
-                "response_mime_type": "application/json",
-            },
-        )
-    except Exception as exc:
-        raise ExtractionError(f"Gemini request failed: {exc}") from exc
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+        },
+    }
 
-    raw_text = (response.text or "").strip()
+    try:
+        response = requests.post(
+            GEMINI_URL,
+            params={"key": api_key},
+            json=payload,
+            timeout=60,
+        )
+        response.raise_for_status()
+        data_json = response.json()
+    except requests.exceptions.RequestException as exc:
+        raise ExtractionError(f"Gemini request failed: {exc}") from exc
+    except ValueError as exc:
+        raise ExtractionError(f"Gemini returned a non-JSON response: {exc}") from exc
+
+    try:
+        candidates = data_json.get("candidates") or []
+        if not candidates:
+            raise KeyError("candidates")
+        parts = candidates[0]["content"]["parts"]
+        raw_text = "".join(part.get("text", "") for part in parts).strip()
+    except (KeyError, IndexError, TypeError) as exc:
+        raise ExtractionError(
+            f"Unexpected Gemini response shape: {exc} | raw={data_json}"
+        ) from exc
+
     raw_text = re.sub(r"^```(json)?", "", raw_text).strip()
     raw_text = re.sub(r"```$", "", raw_text).strip()
 
