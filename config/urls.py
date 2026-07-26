@@ -19,9 +19,7 @@ urlpatterns = [
     path("api/auth/", include("apps.accounts.api_urls")),
     path("api/jobs/", include("apps.jobs.api_urls")),
     path("api/applications/", include("apps.applications.api_urls")),
-    path(
-        "app/", TemplateView.as_view(template_name="react_index.html"), name="react-app"
-    ),
+    path("app/", TemplateView.as_view(template_name="react_index.html"), name="react-app"),
     re_path(r"^app/.*$", TemplateView.as_view(template_name="react_index.html")),
 ]
 

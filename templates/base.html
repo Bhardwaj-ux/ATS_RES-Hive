@@ -1502,6 +1502,8 @@
             <strong>Settings</strong><span>Workspace &amp; account preferences</span>
           {% elif request.resolver_match.namespace == 'resumes' %}
             <strong>Resumes</strong><span>Uploaded candidate files</span>
+          {% elif request.resolver_match.namespace == 'jdimport' %}
+            <strong>Bulk Import Job Description</strong><span>Upload up to 10 JD files at once.</span>
           {% else %}
             <strong>Elecbits</strong><span>ATS Workspace</span>
           {% endif %}

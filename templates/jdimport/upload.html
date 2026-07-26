@@ -29,6 +29,63 @@
         color: var(--primary);
     }
 
+    
+    .jd-dropzone {
+        border: 1.5px dashed var(--border);
+        border-radius: 12px;
+        padding: 22px 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color var(--transition), background var(--transition);
+        background: var(--surface-soft);
+        margin-top: 4px;
+        }
+
+    .jd-dropzone:hover,
+    .jd-dropzone.dragover {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+        }
+
+    .jd-dropzone svg {
+        width: 26px;
+        height: 26px;
+        color: var(--text-muted);
+        margin: 0 auto 8px;
+        }
+
+    .jd-dropzone p {
+        margin: 0;
+        font-size: 0.84rem;
+        color: var(--text-muted);
+        }
+
+    .jd-dropzone .jd-dz-primary {
+        color: var(--text);
+        font-weight: 600;
+        }
+
+    .jd-dropzone input[type="file"] {
+        display: none;
+        }
+
+    .jd-dz-progress {
+        height: 4px;
+        background: var(--border);
+        border-radius: 4px;
+        margin-top: 10px;
+        overflow: hidden;
+        display: none;
+        }
+
+    .jd-dz-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: var(--primary);
+        transition: width 200ms ease;
+        }
+
+
     .jd-dropzone {
         border: 2px dashed var(--border);
         border-radius: var(--radius-lg);
@@ -166,21 +223,34 @@
         <path d="M19 12H5" />
     </svg>
 </a>
-
+<!-- 
 <section class="page-header">
     <div>
         <h1>Bulk Import Job Descriptions</h1>
-        <p>Upload up to 10 JD files (PDF or DOCX) at once. Each file is converted to text and processed with AI to
-            extract job details automatically.</p>
+        <p>Upload up to 10 JD files (PDF or DOCX) at once. Each file is converted to text and processed with AI to extract job details automatically.</p>
     </div>
-</section>
+</section> -->
 
 <article class="info-card">
     <div class="jd-dropzone" id="jdDropZone">
+        <svg class="jd-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8"/><path d="m8 17 4-4 4 4"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        <p class="jd-dropzone-title">Drag &amp; drop a resume here</p>
+
+        <p class="jd-dropzone-hint">or click to browse &middot; PDF, DOC, DOCX up to 8MB each</p>
+
+        <input type="file" id="dzFileInput" accept=" .pdf, .doc, .docx">
+
+        <div class="jd-dz-progress" id="jd-dzProgress">
+            <div class="jd-dz-progress-bar" id="jd-dzProgressBar"></div>
+        </div>
+    </div>
+
+    <!-- <div class="jd-dropzone" id="jdDropZone">
         <div class="jd-dropzone-icon">⬆</div>
         <div class="jd-dropzone-title">Drag & drop JD files here, or click to browse</div>
         <div class="jd-dropzone-hint">PDF or DOCX only · up to 10 files · 8 MB each</div>
-    </div>
+    </div> -->
+
     <input type="file" id="jdFileInput" accept=".pdf,.docx" multiple hidden>
 
     <div class="jd-file-list" id="jdFileList"></div>
