@@ -28,7 +28,7 @@
         border-color: var(--primary);
         color: var(--primary);
     }
-
+    
     .jd-dropzone {
         border: 2px dashed var(--border);
         border-radius: var(--radius-lg);
@@ -38,11 +38,24 @@
         cursor: pointer;
         transition: border-color 160ms ease, background 160ms ease;
     }
-
+    
     .jd-dropzone.drag-active {
         border-color: var(--primary);
         background: var(--primary-soft);
     }
+    
+    .jd-dropzone:hover,
+    .jd-dropzone.dragover {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+        }
+    
+    .jd-dropzone svg {
+        width: 26px;
+        height: 26px;
+        color: var(--text-muted);
+        margin: 0 auto 8px;
+        }
 
     .jd-dropzone-icon {
         width: 26px;
