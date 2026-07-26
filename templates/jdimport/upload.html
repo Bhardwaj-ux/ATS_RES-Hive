@@ -36,7 +36,7 @@
         padding: 22px 14px;
         text-align: center;
         cursor: pointer;
-        transition: border-color var(--transition), background var(--transition);
+        transition: 0.2s ease-in-out;
         background: var(--surface-soft);
         margin-top: 4px;
         }
@@ -245,18 +245,12 @@
         </div>
     </div>
 
-    <!-- <div class="jd-dropzone" id="jdDropZone">
-        <div class="jd-dropzone-icon">⬆</div>
-        <div class="jd-dropzone-title">Drag & drop JD files here, or click to browse</div>
-        <div class="jd-dropzone-hint">PDF or DOCX only · up to 10 files · 8 MB each</div>
-    </div> -->
-
     <input type="file" id="jdFileInput" accept=".pdf,.docx" multiple hidden>
 
     <div class="jd-file-list" id="jdFileList"></div>
 
     <div class="jd-upload-actions">
-        <button type="button" class="btn btn-primary" id="jdStartBtn" disabled>Start Import</button>
+        <button type="button" class="btn btn-primary" id="jdStartBtn" disabled>Start Fetching JDs</button>
         <span class="muted hidden" id="jdSummary"></span>
     </div>
 
