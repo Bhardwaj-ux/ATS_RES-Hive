@@ -433,7 +433,7 @@
                 if (extracted) successCount += 1;
             }
 
-            startBtn.textContent = "Import Complete";
+            startBtn.textContent = "Next";
             summaryEl.textContent = `${successCount} of ${selectedFiles.length} job description(s) are ready for review.`;
             summaryEl.classList.remove("hidden");
             if (successCount > 0) reviewLinkWrap.classList.remove("hidden");
