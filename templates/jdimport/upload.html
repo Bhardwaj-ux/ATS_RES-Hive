@@ -434,16 +434,20 @@
             const batchId = await startBatch();
             let successCount = 0;
 
-            for (let index = 0; index < selectedFiles.length; index += 1) {
-                const entry = selectedFiles[index];
-                const fileId = await uploadFile(batchId, entry, index);
-                if (!fileId) continue;
-                const converted = await convertFile(fileId, index);
-                if (!converted) continue;
-                const extracted = await extractFile(fileId, index);
-                if (extracted) successCount += 1;
-            }
+        function delay(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
 
+        for (let index = 0; index < selectedFiles.length; index += 1) {
+            const entry = selectedFiles[index];
+            const fileId = await uploadFile(batchId, entry, index);
+            if (!fileId) continue;
+            const converted = await convertFile(fileId, index);
+            if (!converted) continue;
+            if (index > 0) await delay(1500);
+            const extracted = await extractFile(fileId, index);
+            if (extracted) successCount += 1;
+        }
             startBtn.textContent = "Next";
             summaryEl.textContent = `${successCount} of ${selectedFiles.length} job description(s) are ready for review.`;
             summaryEl.classList.remove("hidden");

@@ -1,7 +1,7 @@
 import json
 import os
 import re
-
+import time
 import requests
 
 EXTRACTION_PROMPT = """You are extracting structured job posting data from a job description document written in Markdown syntax.
@@ -29,9 +29,67 @@ Markdown content:
 GEMINI_MODEL = "gemini-2.0-flash"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
+MAX_RETRIES = 4
+BASE_BACKOFF_SECONDS = 3
+
 
 class ExtractionError(Exception):
     pass
+
+
+def _call_gemini_with_retry(payload, api_key):
+    """
+    Retries on HTTP 429 (rate limit) with exponential backoff, respecting
+    the server's Retry-After header when it provides one. Other errors
+    (4xx auth issues, 5xx server errors) are not retried and raise
+    immediately, since retrying those would just waste time.
+    """
+    last_error = None
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            response = requests.post(
+                GEMINI_URL,
+                params={"key": api_key},
+                json=payload,
+                timeout=60,
+            )
+        except requests.exceptions.RequestException as exc:
+            raise ExtractionError(f"Gemini request failed: {exc}") from exc
+
+        if response.status_code == 429:
+            retry_after = response.headers.get("Retry-After")
+            if retry_after:
+                try:
+                    wait_seconds = float(retry_after)
+                except ValueError:
+                    wait_seconds = BASE_BACKOFF_SECONDS * (2**attempt)
+            else:
+                wait_seconds = BASE_BACKOFF_SECONDS * (2**attempt)
+
+            last_error = f"Rate limited (429) after {attempt + 1} attempt(s)."
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(wait_seconds)
+                continue
+            raise ExtractionError(
+                f"Gemini is rate-limiting requests. Please wait a minute and try "
+                f"importing fewer files at once, or upgrade your Gemini API quota. "
+                f"({last_error})"
+            )
+
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as exc:
+            raise ExtractionError(f"Gemini request failed: {exc}") from exc
+
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise ExtractionError(
+                f"Gemini returned a non-JSON response: {exc}"
+            ) from exc
+
+    raise ExtractionError(last_error or "Gemini request failed after retries.")
 
 
 def extract_job_fields(markdown_text: str) -> dict:
@@ -49,19 +107,7 @@ def extract_job_fields(markdown_text: str) -> dict:
         },
     }
 
-    try:
-        response = requests.post(
-            GEMINI_URL,
-            params={"key": api_key},
-            json=payload,
-            timeout=60,
-        )
-        response.raise_for_status()
-        data_json = response.json()
-    except requests.exceptions.RequestException as exc:
-        raise ExtractionError(f"Gemini request failed: {exc}") from exc
-    except ValueError as exc:
-        raise ExtractionError(f"Gemini returned a non-JSON response: {exc}") from exc
+    data_json = _call_gemini_with_retry(payload, api_key)
 
     try:
         candidates = data_json.get("candidates") or []
