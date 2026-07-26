@@ -10,3 +10,4 @@ mammoth>=1.8.0
 markdownify>=0.13.1
 requests>=2.31.0
 boto3>=1.34
+flashtext>=2.7
