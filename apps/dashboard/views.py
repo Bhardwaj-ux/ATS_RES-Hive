@@ -1,7 +1,7 @@
+# FILEPATH: apps/dashboard/views.py
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from django.views.generic import TemplateView
-
 from apps.applications.models import Application, CandidateStatusHistory
 from apps.jobs.models import Job
 from apps.resumes.models import ResumeFile

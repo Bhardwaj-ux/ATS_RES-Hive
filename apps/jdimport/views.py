@@ -1,12 +1,11 @@
+# FILEPATH: apps/jdimport/views.py
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-
 from apps.jobs.forms import JobForm
 from apps.jobs.models import Job
-
 from .models import JDImportBatch, JDImportFile
 from .services.conversion import (
     ConversionError,

@@ -1,3 +1,4 @@
+# FILEPATH: apps/applications/views.py
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -13,7 +14,6 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
-
 from apps.jobs.models import Job
 from .forms import ApplicationForm
 from .models import Application

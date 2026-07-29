@@ -1,5 +1,5 @@
+# FILEPATH: apps/jobs/models.py
 import re
-
 from django.conf import settings
 from django.db import models
 from apps.core.models import TimeStampedModel, SoftDeleteModel

@@ -1,7 +1,7 @@
+# FILEPATH: apps/accounts/models.py
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
 from apps.core.models import TimeStampedModel
 from .managers import UserManager
 

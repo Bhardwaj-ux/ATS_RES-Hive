@@ -1,3 +1,4 @@
+# FILEPATH: apps/applications/urls.py
 from django.urls import path
 from .views import (
     CandidateCreateView,

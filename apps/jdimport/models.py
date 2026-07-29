@@ -1,3 +1,4 @@
+# FILEPATH: apps/jdimport/models.py
 from django.conf import settings
 from django.db import models
 from apps.core.models import TimeStampedModel
