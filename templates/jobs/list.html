@@ -1,11 +1,10 @@
 <!-- FILEPATH: tempaltes/jobs/list.html -->
 {% extends 'base.html' %}
-
 {% block title %}Job Roles | ATS Workspace{% endblock %}
-
 {% block extra_head %}
 <style>
-    .filter-bar {
+    .search-shell {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -13,42 +12,123 @@
         flex-wrap: wrap;
     }
 
-    .filter-search {
+    .search-box {
         flex: 1;
-        min-width: 220px;
-        position: relative;
+        min-width: 260px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0 6px 0 4px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .filter-search svg {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 15px;
-        height: 15px;
+    .search-box:focus-within {
+        border-color: var(--primary);
+    }
+
+    .search-btn {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .search-btn:hover {
+        background: var(--surface-soft);
+        color: var(--primary);
+    }
+
+    .search-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .search-box input[type="text"] {
+        flex: 1;
+        border: none;
+        background: none;
+        min-height: 38px;
+        padding: 0 4px;
+    }
+
+    .search-box input[type="text"]:focus {
+        box-shadow: none;
+    }
+
+    .search-clear-link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        white-space: nowrap;
+        padding: 0 4px;
+    }
+
+    .search-clear-link:hover {
+        color: var(--danger-text);
+    }
+
+    .filter-icon-btn {
         color: var(--text-muted);
     }
 
-    .filter-search input {
-        padding-left: 34px;
+    .filter-icon-btn.active {
+        color: var(--primary);
+        background: var(--primary-soft);
     }
 
-    .filter-panel {
+    .search-side-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: opacity 0.18s ease;
+    }
+
+    .search-side-actions.hidden-during-filter {
         display: none;
+    }
+
+    .jd-review-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        background: var(--info-soft);
+        color: var(--info-text);
+        font-size: 0.86rem;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .filter-panel-inline {
+        display: none;
+        width: 100%;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
         padding: 16px;
         border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        background: var(--surface-soft);
-        margin-bottom: 16px;
+        border-radius: 12px;
+        background: var(--surface);
+        margin-top: 10px;
     }
 
-    .filter-panel.open {
+    .filter-panel-inline.open {
         display: grid;
     }
 
-    .filter-panel .form-group {
+    .filter-panel-inline .form-group {
         margin-bottom: 0;
     }
 
@@ -72,57 +152,25 @@
         justify-content: space-between;
         gap: 8px;
         font-size: 0.86rem;
-        font-family: var(--font-sans);
         color: var(--text);
         background: var(--surface-soft);
-        box-shadow: 0 0 3px var(--primary-soft-text);
         border: 1px solid var(--border);
         border-radius: 12px;
         cursor: pointer;
-        backdrop-filter: blur(1px) saturate(180%);
-        -webkit-backdrop-filter: blur(1px) saturate(180%);
-        transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        transition: border-color 0.18s ease;
     }
 
-    html[data-theme="dark"] .glass-select-trigger {
-        background: var(--task-bg);
-        border: 1px solid var(--border);
-    }
-
-    .glass-select-trigger:hover {
-        border: 1px solid var(--primary);
-        backdrop-filter: brightness(150%);
-        transition: 0.2s ease-in-out;
-    }
-
-    html[data-theme="dark"] .glass-select-trigger:hover {
-        border: 1px solid var(--primary);
-        backdrop-filter: brightness(150%);
-        transition: 0.2s ease-in-out;
-    }
-
+    .glass-select-trigger:hover,
     .glass-select-wrap.open .glass-select-trigger {
         border-color: var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-soft);
-    }
-
-    .glass-select-label {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .glass-select-arrow {
         width: 14px;
         height: 14px;
-        color: var(--text);
-        opacity: 0.75;
+        color: var(--text-muted);
         flex-shrink: 0;
-        transition: transform 0.18s ease, opacity 0.18s ease;
-    }
-
-    .glass-select-wrap:hover .glass-select-arrow {
-        opacity: 1;
+        transition: transform 0.18s ease;
     }
 
     .glass-select-wrap.open .glass-select-arrow {
@@ -145,8 +193,8 @@
         border: 1px solid var(--border);
         box-shadow: var(--shadow-md);
         background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(5px) saturate(100%);
-        -webkit-backdrop-filter: blur(5px) saturate(100%);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
     }
 
     html[data-theme="dark"] .glass-select-list {
@@ -163,7 +211,6 @@
         font-size: 0.85rem;
         color: var(--text);
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease;
     }
 
     .glass-select-list li:hover {
@@ -182,7 +229,7 @@
         justify-content: space-between;
         gap: 12px;
         padding: 10px 14px;
-        border-radius: var(--radius-md);
+        border-radius: 12px;
         background: var(--primary-soft);
         border: 1px solid var(--primary);
         margin-bottom: 12px;
@@ -201,9 +248,9 @@
         flex-wrap: wrap;
     }
 
-    /* --- split Create button (item #4) --- */
     .create-menu {
         position: relative;
+        flex-shrink: 0;
     }
 
     .create-menu-trigger {
@@ -218,11 +265,10 @@
         font-weight: 700;
         font-size: 0.9rem;
         cursor: pointer;
-        transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        transition: transform 0.18s ease;
     }
 
     .create-menu-trigger:hover {
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
         transform: translateY(-1px);
     }
 
@@ -232,7 +278,7 @@
     }
 
     .create-menu-chevron {
-        transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+        transition: transform 0.25s ease;
     }
 
     .create-menu.open .create-menu-chevron {
@@ -254,9 +300,7 @@
         opacity: 0;
         visibility: hidden;
         transform: translateY(-8px);
-        transition: opacity 0.28s cubic-bezier(0.23, 1, 0.32, 1),
-            transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
-            visibility 0.28s;
+        transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
         z-index: 40;
     }
 
@@ -270,45 +314,26 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 11px 12px;
-        border-radius: 10px;
+        padding: 10px 12px;
+        border-radius: 9px;
         color: var(--text);
-        font-size: 0.88rem;
+        font-size: 0.87rem;
         font-weight: 600;
-        position: relative;
-        overflow: hidden;
-        transition: color 0.3s ease;
-    }
-
-    .create-submenu-link::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: var(--primary);
-        transform: scaleX(0);
-        transform-origin: left;
-        z-index: -1;
-        transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-        border-radius: 10px;
     }
 
     .create-submenu-link:hover {
-        color: #fff;
-        transition: 0.3s ease-in-out;
-    }
-
-    .create-submenu-link:hover::before {
-        transform: scaleX(1);
+        background: var(--surface-soft);
+        color: var(--primary);
     }
 
     .create-submenu-link svg {
-        width: 16px;
-        height: 13px;
+        width: 15px;
+        height: 15px;
         flex-shrink: 0;
     }
 
     @media (max-width: 700px) {
-        .filter-panel {
+        .filter-panel-inline {
             grid-template-columns: 1fr;
         }
     }
@@ -316,24 +341,37 @@
 {% endblock %}
 
 {% block content %}
-<form method="get" id="filterForm">
-    <div class="filter-bar">
-        <div class="filter-search">
+<div class="search-shell">
+    <div class="search-box">
+        <button type="button" class="search-btn" id="searchSubmitBtn" title="Search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
             </svg>
-            <input type="text" name="q" value="{{ current_filters.q }}"
-                placeholder="Search by job title or department...">
-        </div>
-        <button type="button" class="btn btn-secondary" id="filterToggleBtn">
+        </button>
+        <input type="text" id="liveSearchInput" value="{{ current_filters.q }}"
+            placeholder="Search title, department, location, type, status, skills...">
+        <a href="{% url 'jobs:list' %}" class="search-clear-link" id="clearFiltersLink" style="display:none;">Clear Filters</a>
+        <button type="button" class="search-btn filter-icon-btn" id="filterToggleBtn" title="Filters">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg>
-            Filters
         </button>
+    </div>
+
+    <div class="search-side-actions" id="searchSideActions">
+        {% if pending_jd_review_count %}
+        <a href="{% url 'jdimport:review_list' %}" class="jd-review-pill">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect width="20" height="16" x="2" y="4" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+            Review Imported JDs({{ pending_jd_review_count }})
+        </a>
+        {% endif %}
 
         <div class="create-menu" id="createMenu">
             <button type="button" class="create-menu-trigger" id="createMenuTrigger">
@@ -352,7 +390,7 @@
                             <polyline points="17 8 12 3 7 8" />
                             <line x1="12" x2="12" y1="3" y2="15" />
                         </svg>
-                        Import JD Files
+                        Import Files
                     </a>
                 </li>
                 <li>
@@ -369,7 +407,7 @@
         </div>
     </div>
 
-    <div class="filter-panel" id="filterPanel">
+    <div class="filter-panel-inline" id="filterPanel">
         <div class="form-group">
             <label>Status</label>
             <div class="glass-select-wrap" data-glass-select>
@@ -380,13 +418,15 @@
                         <path d="M6 9l6 6 6-6" />
                     </svg>
                 </button>
-
-                <input type="hidden" name="status" value="{{ current_filters.status|default:'' }}">
-
+                <input type="hidden" id="statusFilterInput" value="{{ current_filters.status|default:'' }}">
                 <ul class="glass-select-list">
-                    <li data-value="" {% if not current_filters.status %}class="active"{% endif %}>All statuses</li>
+                    <li data-value="" {% if not current_filters.status %}class="active" {% endif %}>
+                        All statuses
+                    </li>
                     {% for value, label in status_choices %}
-                    <li data-value="{{ value }}" {% if current_filters.status == value %}class="active"{% endif %}>{{ label }}</li>
+                    <li data-value="{{ value }}" {% if current_filters.status==value %}class="active" {% endif %}>
+                        {{ label }}
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
@@ -402,29 +442,32 @@
                         <path d="M6 9l6 6 6-6" />
                     </svg>
                 </button>
-
-                <input type="hidden" name="employment_type" value="{{ current_filters.employment_type|default:'' }}">
-
+                <input type="hidden" id="typeFilterInput" value="{{ current_filters.employment_type|default:'' }}">
                 <ul class="glass-select-list">
-                    <li data-value="" {% if not current_filters.employment_type %}class="active" {% endif %}>All types
+                    <li data-value="" {% if not current_filters.employment_type %}class="active" {% endif %}>
+                        All types
                     </li>
                     {% for value, label in employment_type_choices %}
-                    <li data-value="{{ value }}" {% if current_filters.employment_type == value %}class="active"{% endif %}>{{ label }}</li>
+                    <li data-value="{{ value }}" {% if current_filters.employment_type==value %}class="active" {% endif %}>
+                        {{ label }}
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
+
         <div class="form-group">
             <label>Location</label>
-            <input type="text" name="location" value="{{ current_filters.location }}"
+            <input type="text" id="locationFilterInput" value="{{ current_filters.location }}"
                 placeholder="e.g. Bengaluru, Remote">
         </div>
+
         <div class="filter-panel-actions">
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <button type="button" class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
             <a href="{% url 'jobs:list' %}" class="btn btn-secondary">Clear</a>
         </div>
     </div>
-</form>
+</div>
 
 <div class="bulk-bar hidden" id="bulkBar">
     <span id="bulkCount">0 selected</span>
@@ -436,96 +479,154 @@
     </div>
 </div>
 
-{% if pending_jd_review_count %}
-<div class="empty-state" style="text-align:left; margin-bottom:16px;">
-    <a href="{% url 'jdimport:review_list' %}" class="text-link">
-        {{ pending_jd_review_count }} imported job description(s) waiting for review →
-    </a>
-</div>
-{% endif %}
-
-<section class="table-card">
-    {% if jobs %}
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th style="width:36px;"><input type="checkbox" class="row-check" id="selectAll"></th>
-                <th>Title</th>
-                <th>Department</th>
-                <th>Location</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for job in jobs %}
-            <tr>
-                <td><input type="checkbox" class="row-check row-check-item" value="{{ job.pk }}"></td>
-                <td><a href="{% url 'jobs:detail' job.pk %}" class="text-link">{{ job.title }}</a></td>
-                <td>{{ job.department }}</td>
-                <td>{{ job.location }}</td>
-                <td>{{ job.get_employment_type_display }}</td>
-                <td><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></td>
-                <td>
-                    <div class="inline-actions">
-                        <a href="{% url 'jobs:edit' job.pk %}" class="icon-btn-sm" title="Edit">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                            </svg>
-                        </a>
-                        <a href="{% url 'jobs:delete' job.pk %}" class="icon-btn-sm danger" title="Delete">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18" />
-                                <path
-                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                <line x1="10" x2="10" y1="11" y2="17" />
-                                <line x1="14" x2="14" y1="11" y2="17" />
-                            </svg>
-                        </a>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">No job roles match your search or filters.</div>
-    {% endif %}
+<section id="jobsTableWrap">
+    {% include "jobs/_table_rows.html" %}
 </section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.querySelectorAll('[data-glass-select]').forEach(function (wrap) {
-        var trigger = wrap.querySelector('.glass-select-trigger');
-        var label = wrap.querySelector('.glass-select-label');
-        var hiddenInput = wrap.querySelector('input[type="hidden"]');
-        var list = wrap.querySelector('.glass-select-list');
-
-        trigger.addEventListener('click', function (e) {
-            e.stopPropagation();
-            document.querySelectorAll('.glass-select-wrap.open').forEach(function (w) {
-                if (w !== wrap) w.classList.remove('open');
-            });
-            wrap.classList.toggle('open');
-        });
-
-        list.querySelectorAll('li').forEach(function (li) {
-            li.addEventListener('click', function (e) {
-                e.stopPropagation();
-                list.querySelectorAll('li').forEach(function (i) { i.classList.remove('active'); });
-                li.classList.add('active');
-                label.textContent = li.textContent;
-                hiddenInput.value = li.getAttribute('data-value');
-                wrap.classList.remove('open');
-            });
-        });
-    });
-
     document.addEventListener('DOMContentLoaded', function () {
+        function getCookie(name) {
+            var value = "; " + document.cookie;
+            var parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return null;
+        }
+
+        var input = document.getElementById('liveSearchInput');
+        var statusInput = document.getElementById('statusFilterInput');
+        var typeInput = document.getElementById('typeFilterInput');
+        var locationInput = document.getElementById('locationFilterInput');
+        var clearLink = document.getElementById('clearFiltersLink');
+        var filterBtn = document.getElementById('filterToggleBtn');
+        var tableWrap = document.getElementById('jobsTableWrap');
+        var searchBtn = document.getElementById('searchSubmitBtn');
+        var searchUrl = "{% url 'jobs:search-ajax' %}";
+        var debounceTimer = null;
+
+        function hasActiveFilters() {
+            return !!(input.value || statusInput.value || typeInput.value || locationInput.value);
+        }
+
+        function refreshFilterIndicators() {
+            var active = !!(statusInput.value || typeInput.value || locationInput.value);
+            filterBtn.classList.toggle('active', active);
+            clearLink.style.display = hasActiveFilters() ? 'inline-block' : 'none';
+        }
+
+        function wireRowInteractions() {
+            var selectAll = document.getElementById('selectAll');
+            var rowChecks = document.querySelectorAll('.row-check-item');
+            var bulkBar = document.getElementById('bulkBar');
+            var bulkCount = document.getElementById('bulkCount');
+
+            function refreshBulkBar() {
+                var checked = document.querySelectorAll('.row-check-item:checked');
+                if (checked.length > 0) {
+                    bulkBar.classList.remove('hidden');
+                    bulkCount.textContent = checked.length + ' selected';
+                } else {
+                    bulkBar.classList.add('hidden');
+                }
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    rowChecks.forEach(function (cb) { cb.checked = selectAll.checked; });
+                    refreshBulkBar();
+                });
+            }
+            rowChecks.forEach(function (cb) { cb.addEventListener('change', refreshBulkBar); });
+        }
+
+        function runSearch() {
+            var params = new URLSearchParams();
+            if (input.value) params.set('q', input.value);
+            if (statusInput.value) params.set('status', statusInput.value);
+            if (typeInput.value) params.set('employment_type', typeInput.value);
+            if (locationInput.value) params.set('location', locationInput.value);
+
+            fetch(searchUrl + '?' + params.toString())
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.ok) {
+                        tableWrap.innerHTML = data.html;
+                        wireRowInteractions();
+                    }
+                });
+
+            refreshFilterIndicators();
+            var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState(null, '', newUrl);
+        }
+
+        input.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(runSearch, 250);
+        });
+
+        searchBtn.addEventListener('click', function () { runSearch(); });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); runSearch(); }
+        });
+
+        document.querySelectorAll('[data-glass-select]').forEach(function (wrap) {
+            var trigger = wrap.querySelector('.glass-select-trigger');
+            var label = wrap.querySelector('.glass-select-label');
+            var hiddenInput = wrap.querySelector('input[type="hidden"]');
+            var list = wrap.querySelector('.glass-select-list');
+
+            trigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                document.querySelectorAll('.glass-select-wrap.open').forEach(function (w) {
+                    if (w !== wrap) w.classList.remove('open');
+                });
+                wrap.classList.toggle('open');
+            });
+
+            list.querySelectorAll('li').forEach(function (li) {
+                li.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    list.querySelectorAll('li').forEach(function (i) { i.classList.remove('active'); });
+                    li.classList.add('active');
+                    label.textContent = li.textContent;
+                    hiddenInput.value = li.getAttribute('data-value');
+                    wrap.classList.remove('open');
+                });
+            });
+        });
+
+        var applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        applyFiltersBtn.addEventListener('click', function () { runSearch(); });
+
+        var filterPanel = document.getElementById('filterPanel');
+        var searchSideActions = document.getElementById('searchSideActions');
+        filterBtn.addEventListener('click', function () {
+            filterPanel.classList.toggle('open');
+            searchSideActions.classList.toggle('hidden-during-filter', filterPanel.classList.contains('open'));
+        });
+
+        clearLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            input.value = '';
+            statusInput.value = '';
+            typeInput.value = '';
+            locationInput.value = '';
+            document.querySelectorAll('.glass-select-wrap').forEach(function (wrap) {
+                var firstOption = wrap.querySelector('.glass-select-list li');
+                wrap.querySelector('.glass-select-label').textContent = firstOption.textContent;
+                wrap.querySelectorAll('li').forEach(function (i) { i.classList.remove('active'); });
+                firstOption.classList.add('active');
+            });
+            runSearch();
+        });
+
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.glass-select-wrap.open').forEach(function (w) { w.classList.remove('open'); });
+            if (createMenu) createMenu.classList.remove('open');
+        });
+
         var createMenu = document.getElementById('createMenu');
         var createMenuTrigger = document.getElementById('createMenuTrigger');
         if (createMenu && createMenuTrigger) {
@@ -534,49 +635,6 @@
                 createMenu.classList.toggle('open');
             });
         }
-
-        document.addEventListener('click', function () {
-            document.querySelectorAll('.glass-select-wrap.open').forEach(function (w) { w.classList.remove('open'); });
-            if (createMenu) createMenu.classList.remove('open');
-        });
-
-        var filterToggleBtn = document.getElementById('filterToggleBtn');
-        var filterPanel = document.getElementById('filterPanel');
-        if (filterToggleBtn && filterPanel) {
-            filterToggleBtn.addEventListener('click', function () { filterPanel.classList.toggle('open'); });
-            var hasActiveFilters = {{ current_filters.status|yesno:"true,false" }} || {{ current_filters.employment_type|yesno:"true,false" }} || {{ current_filters.location|yesno:"true,false" }};
-            if (hasActiveFilters) { filterPanel.classList.add('open'); }
-        }
-
-        function getCookie(name) {
-            var value = "; " + document.cookie;
-            var parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
-            return null;
-        }
-
-        var selectAll = document.getElementById('selectAll');
-        var rowChecks = document.querySelectorAll('.row-check-item');
-        var bulkBar = document.getElementById('bulkBar');
-        var bulkCount = document.getElementById('bulkCount');
-
-        function refreshBulkBar() {
-            var checked = document.querySelectorAll('.row-check-item:checked');
-            if (checked.length > 0) {
-                bulkBar.classList.remove('hidden');
-                bulkCount.textContent = checked.length + ' selected';
-            } else {
-                bulkBar.classList.add('hidden');
-            }
-        }
-
-        if (selectAll) {
-            selectAll.addEventListener('change', function () {
-                rowChecks.forEach(function (cb) { cb.checked = selectAll.checked; });
-                refreshBulkBar();
-            });
-        }
-        rowChecks.forEach(function (cb) { cb.addEventListener('change', refreshBulkBar); });
 
         document.querySelectorAll('[data-bulk-action]').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -600,10 +658,14 @@
                             window.ATSNotify.toast(data.message || data.error, data.ok ? 'success' : 'error');
                             window.ATSNotify.add(data.message || data.error, data.ok ? 'success' : 'error');
                         }
-                        if (data.ok) window.location.reload();
+                        if (data.ok) runSearch();
                     });
             });
         });
+
+        wireRowInteractions();
+        refreshFilterIndicators();
+        if (statusInput.value || typeInput.value) { filterPanel.classList.add('open'); }
     });
 </script>
 {% endblock %}

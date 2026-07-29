@@ -7,12 +7,14 @@ from .views import (
     JobListView,
     JobUpdateView,
     bulk_job_action,
+    jobs_search_ajax,
 )
 
 app_name = "jobs"
 
 urlpatterns = [
     path("", JobListView.as_view(), name="list"),
+    path("search/", jobs_search_ajax, name="search-ajax"),
     path("create/", JobCreateView.as_view(), name="create"),
     path("bulk-action/", bulk_job_action, name="bulk-action"),
     path("<int:pk>/", JobDetailView.as_view(), name="detail"),

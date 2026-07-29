@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -17,28 +18,54 @@ from .forms import JobForm
 from .models import Job
 
 
+def filter_jobs_queryset(request):
+    qs = Job.objects.filter(is_active=True)
+    q = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "").strip()
+    employment_type = request.GET.get("employment_type", "").strip()
+    location = request.GET.get("location", "").strip()
+
+    if q:
+        matched_statuses = [
+            value
+            for value, label in Job.JobStatus.choices
+            if q.lower() in label.lower()
+        ]
+        matched_types = [
+            value
+            for value, label in Job.EmploymentType.choices
+            if q.lower() in label.lower()
+        ]
+        text_filter = (
+            Q(title__icontains=q)
+            | Q(department__icontains=q)
+            | Q(location__icontains=q)
+            | Q(required_skills__icontains=q)
+            | Q(description__icontains=q)
+        )
+        if matched_statuses:
+            text_filter |= Q(status__in=matched_statuses)
+        if matched_types:
+            text_filter |= Q(employment_type__in=matched_types)
+        qs = qs.filter(text_filter)
+
+    if status:
+        qs = qs.filter(status=status)
+    if employment_type:
+        qs = qs.filter(employment_type=employment_type)
+    if location:
+        qs = qs.filter(location__icontains=location)
+
+    return qs.order_by("-created_at").distinct()
+
+
 class JobListView(LoginRequiredMixin, ListView):
     model = Job
     template_name = "jobs/list.html"
     context_object_name = "jobs"
 
     def get_queryset(self):
-        qs = Job.objects.filter(is_active=True)
-        q = self.request.GET.get("q", "").strip()
-        status = self.request.GET.get("status", "").strip()
-        employment_type = self.request.GET.get("employment_type", "").strip()
-        location = self.request.GET.get("location", "").strip()
-
-        if q:
-            qs = qs.filter(Q(title__icontains=q) | Q(department__icontains=q))
-        if status:
-            qs = qs.filter(status=status)
-        if employment_type:
-            qs = qs.filter(employment_type=employment_type)
-        if location:
-            qs = qs.filter(location__icontains=location)
-
-        return qs.order_by("-created_at")
+        return filter_jobs_queryset(self.request)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -54,6 +81,14 @@ class JobListView(LoginRequiredMixin, ListView):
             "location": self.request.GET.get("location", ""),
         }
         return context
+
+
+@login_required
+@require_GET
+def jobs_search_ajax(request):
+    jobs = filter_jobs_queryset(request)
+    html = render_to_string("jobs/_table_rows.html", {"jobs": jobs}, request=request)
+    return JsonResponse({"ok": True, "html": html, "count": jobs.count()})
 
 
 class JobCreateView(LoginRequiredMixin, CreateView):
