@@ -637,11 +637,11 @@
                     <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
                     <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
                     <span class="rt-sep"></span>
-                    <button type="button" data-cmd="formatBlock" data-value="H3" title="Heading">H1</button>
-                    <button type="button" data-cmd="formatBlock" data-value="H4" title="Sub-heading">H2</button>
+                    <button type="button" data-cmd="formatBlock" data-value="H3" title="Heading">Heading 1</button>
+                    <button type="button" data-cmd="formatBlock" data-value="H4" title="Sub-heading">Heading 2</button>
                     <span class="rt-sep"></span>
-                    <button type="button" data-cmd="insertUnorderedList" title="Bullet list">&bull; List</button>
-                    <button type="button" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+                    <button type="button" data-cmd="insertUnorderedList" title="Bullet list">Bullet Point</button>
+                    <button type="button" data-cmd="insertOrderedList" title="Numbered list">Num Point</button>
                     <span class="rt-sep"></span>
                     <button type="button" data-cmd="createLink" title="Insert link">🔗</button>
                     <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
@@ -660,7 +660,7 @@
                     <label class="field-label">Priority</label>
                     <div class="glass-select-wrap" data-glass-select>
                         <button type="button" class="glass-select-trigger">
-                            <span class="glass-select-label">{{ form.priority.value|default:"P2" }}</span>
+                            <span class="glass-select-label">{{ form.priority.value | default:"P2" }}</span>
                             <svg class="glass-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </button>
                         <select name="{{ form.priority.html_name }}" id="{{ form.priority.auto_id }}" class="hidden native-select-source">
