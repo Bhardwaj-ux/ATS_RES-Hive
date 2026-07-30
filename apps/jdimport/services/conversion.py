@@ -1,51 +1,92 @@
+# FILEPATH: apps/jdimport/services/conversion.py
+import io
+import tempfile
+import os
+import mammoth
+from markdownify import markdownify as html_to_markdown
+
+
 class ConversionError(Exception):
     pass
 
 
-def convert_pdf_to_markdown(file_obj) -> str:
-    """
-    Extracts text from a PDF using PyMuPDF only. No pymupdf4llm, no
-    onnxruntime — that dependency chain is what pushed the Vercel function
-    bundle past the 225MB limit and broke deployment. Plain page-by-page
-    text extraction is fully sufficient for what the Gemini extraction
-    prompt needs (it reads prose, not markdown formatting).
-    """
+def _pdf_bytes_to_docx_bytes(pdf_file):
+    """Step 1: PDF -> DOCX using pdf2docx (layout-aware conversion)."""
     try:
-        import fitz  # PyMuPDF
+        from pdf2docx import Converter
     except ImportError as exc:
-        raise ConversionError(f"Missing PDF conversion dependency: {exc}") from exc
+        raise ConversionError(
+            "PDF-to-DOCX converter is not installed on the server."
+        ) from exc
+
+    pdf_file.seek(0)
+    pdf_bytes = pdf_file.read()
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_pdf:
+        tmp_pdf.write(pdf_bytes)
+        tmp_pdf_path = tmp_pdf.name
+
+    tmp_docx_path = tmp_pdf_path.replace(".pdf", ".docx")
 
     try:
-        file_obj.seek(0)
-        data = file_obj.read()
-        doc = fitz.open(stream=data, filetype="pdf")
+        converter = Converter(tmp_pdf_path)
+        converter.convert(tmp_docx_path)
+        converter.close()
 
-        page_texts = []
-        for page in doc:
-            text = page.get_text("text")
-            if text and text.strip():
-                page_texts.append(text.strip())
-        doc.close()
+        if not os.path.exists(tmp_docx_path):
+            raise ConversionError("PDF could not be converted to DOCX.")
 
-        markdown_text = "\n\n".join(page_texts)
+        with open(tmp_docx_path, "rb") as f:
+            docx_bytes = f.read()
     except Exception as exc:
-        raise ConversionError(f"Could not read this PDF file: {exc}") from exc
+        raise ConversionError(f"Failed to convert PDF to DOCX: {exc}") from exc
+    finally:
+        for path in (tmp_pdf_path, tmp_docx_path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
 
-    return markdown_text
+    if not docx_bytes:
+        raise ConversionError("PDF-to-DOCX conversion produced an empty file.")
+
+    return docx_bytes
 
 
-def convert_docx_to_markdown(file_obj) -> str:
+def _docx_bytes_to_markdown(docx_bytes):
+    """Step 2: DOCX -> HTML (mammoth) -> Markdown (markdownify)."""
     try:
-        import mammoth
-        from markdownify import markdownify
-    except ImportError as exc:
-        raise ConversionError(f"Missing DOCX conversion dependency: {exc}") from exc
-
-    try:
-        file_obj.seek(0)
-        result = mammoth.convert_to_html(file_obj)
-        markdown_text = markdownify(result.value, heading_style="ATX")
+        result = mammoth.convert_to_html(io.BytesIO(docx_bytes))
     except Exception as exc:
-        raise ConversionError(f"Could not read this DOCX file: {exc}") from exc
+        raise ConversionError(f"Failed to read DOCX content: {exc}") from exc
 
-    return markdown_text
+    html = result.value
+    if not html or not html.strip():
+        raise ConversionError("No readable text was found in this document.")
+
+    markdown_text = html_to_markdown(
+        html, heading_style="ATX", bullets="-", strong_em_symbol="*"
+    )
+    return markdown_text.strip()
+
+
+def convert_pdf_to_markdown(pdf_file):
+    """
+    Full pipeline for PDF uploads:
+    PDF -> DOCX -> Markdown
+    Kept as the public entrypoint name for backward compatibility with views.py.
+    """
+    docx_bytes = _pdf_bytes_to_docx_bytes(pdf_file)
+    return _docx_bytes_to_markdown(docx_bytes)
+
+
+def convert_docx_to_markdown(docx_file):
+    """
+    Pipeline for native DOCX uploads:
+    DOCX -> Markdown (no PDF step needed)
+    """
+    docx_file.seek(0)
+    docx_bytes = docx_file.read()
+    if not docx_bytes:
+        raise ConversionError("Uploaded DOCX file is empty.")
+    return _docx_bytes_to_markdown(docx_bytes)

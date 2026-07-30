@@ -9,9 +9,14 @@ CITY_CHOICES = [
     ("Delhi", "Delhi"),
 ]
 
+DEPARTMENT_CHOICES = [("", "Select a department")] + list(Job.Department.choices)
+
 
 class JobForm(forms.ModelForm):
     location = forms.ChoiceField(choices=CITY_CHOICES, required=False, label="City")
+    department = forms.ChoiceField(
+        choices=DEPARTMENT_CHOICES, required=True, label="Department"
+    )
 
     class Meta:
         model = Job
@@ -23,22 +28,29 @@ class JobForm(forms.ModelForm):
             "experience_min_years",
             "experience_max_years",
             "required_skills",
+            "skills_data",
             "requirements",
             "description",
+            "priority",
+            "ctc_mode",
+            "ctc_min",
+            "ctc_max",
             "status",
         ]
         labels = {
             "employment_type": "Job Type",
-            "requirements": "Key Responsibilities",
+            "requirements": "Roles & Responsibilities",
             "description": "Description of Job",
             "required_skills": "Skills",
         }
         widgets = {
-            "description": forms.Textarea(attrs={"rows": 5}),
+            "description": forms.Textarea(attrs={"rows": 4}),
             "requirements": forms.Textarea(
                 attrs={"rows": 6, "id": "id_requirements_richtext_source"}
             ),
             "required_skills": forms.HiddenInput(),
+            "skills_data": forms.HiddenInput(),
+            "ctc_mode": forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -50,6 +62,10 @@ class JobForm(forms.ModelForm):
             self.fields["location"].choices = CITY_CHOICES + [
                 (current_location, current_location)
             ]
+        self.fields["experience_min_years"].label = "Min"
+        self.fields["experience_max_years"].label = "Max"
+        self.fields["ctc_min"].required = False
+        self.fields["ctc_max"].required = False
 
     def clean_required_skills(self):
         raw_value = (self.cleaned_data.get("required_skills") or "").strip()
@@ -57,9 +73,28 @@ class JobForm(forms.ModelForm):
         cleaned = []
         seen = set()
         for part in parts:
-            skill = part.lower().strip()
-            if not skill or skill in seen:
+            skill = part.strip()
+            if not skill:
                 continue
-            seen.add(skill)
+            key = skill.lower()
+            if key in seen:
+                continue
+            seen.add(key)
             cleaned.append(skill)
         return ", ".join(cleaned)
+
+    def clean_skills_data(self):
+        import json
+
+        raw_value = self.cleaned_data.get("skills_data")
+        if not raw_value:
+            return []
+        if isinstance(raw_value, list):
+            return raw_value
+        try:
+            parsed = json.loads(raw_value)
+            if isinstance(parsed, list):
+                return parsed
+        except (ValueError, TypeError):
+            pass
+        return []

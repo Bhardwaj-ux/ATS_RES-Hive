@@ -1,67 +1,253 @@
 <!-- FILEPATH: tempaltes/jobs/form.html -->
 {% extends 'base.html' %}
 
-{% block title %}Job Form | ATS Workspace{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit Job Role{% else %}Create Job Role{% endif %} | ATS Workspace{% endblock
+%}
 
 {% block extra_head %}
 <style>
-    .form-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
-        padding: 24px;
+    .jd-form-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
     }
 
-    .form-grid {
+    .back-icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        flex-shrink: 0;
+        transition: border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .back-icon-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .back-icon-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .jd-form-header h1 {
+        margin: 0;
+        font-size: 1.4rem;
+    }
+
+    .jd-form-grid {
         display: grid;
+        gap: 22px;
+    }
+
+    .jd-row-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
     }
 
-    .form-grid.two-col {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .jd-row-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
     }
 
-    .form-actions {
+    .field-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text);
+        font-size: 0.88rem;
+    }
+
+    .field-label .hint {
+        font-weight: 400;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        margin-left: 6px;
+    }
+
+    /* Glass select (dropdown) */
+    .glass-select-wrap {
+        position: relative;
+        width: 100%;
+    }
+
+    .glass-select-trigger {
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 14px;
         display: flex;
-        gap: 12px;
-        margin-top: 20px;
-        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: var(--text);
+        background: var(--surface-soft);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: border-color 0.18s ease;
     }
 
-    .tags-wrapper {
-        padding: 16px;
+    .glass-select-trigger:hover,
+    .glass-select-wrap.open .glass-select-trigger {
+        border-color: var(--primary);
+    }
+
+    .glass-select-arrow {
+        width: 14px;
+        height: 14px;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        transition: transform 0.18s ease;
+    }
+
+    .glass-select-wrap.open .glass-select-arrow {
+        transform: rotate(180deg);
+    }
+
+    .glass-select-list {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        z-index: 30;
+        list-style: none;
+        margin: 0;
+        padding: 6px;
+        max-height: 260px;
+        overflow-y: auto;
+        border-radius: 12px;
         border: 1px solid var(--border);
-        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+    }
+
+    html[data-theme="dark"] .glass-select-list {
+        background: rgba(30, 31, 36, 0.8);
+    }
+
+    .glass-select-wrap.open .glass-select-list {
+        display: block;
+    }
+
+    .glass-select-list li {
+        padding: 9px 10px;
+        border-radius: 8px;
+        font-size: 0.87rem;
+        color: var(--text);
+        cursor: pointer;
+    }
+
+    .glass-select-list li .opt-meaning {
+        display: block;
+        font-size: 0.76rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .glass-select-list li:hover {
+        background: var(--info-soft);
+        color: var(--primary-soft-text);
+    }
+
+    .glass-select-list li.active {
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    /* Experience / CTC mini boxes */
+    .mini-box-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .mini-box-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+    }
+
+    .mini-box-item span {
+        font-size: 0.76rem;
+        color: var(--text-muted);
+    }
+
+    .mini-box-sep {
+        color: var(--text-muted);
+        padding-top: 20px;
+    }
+
+    /* Skills */
+    .skills-wrapper {
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
         background: var(--surface-soft);
     }
 
-    .tags-content {
+    .skills-content {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
         gap: 8px;
         padding: 10px;
         border: 1px solid var(--border);
-        border-radius: 12px;
-        min-height: 56px;
+        border-radius: 10px;
+        min-height: 50px;
         background: var(--input-bg);
     }
 
-    .tag-item {
+    .skill-pill-edit {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
+        gap: 6px;
+        padding: 6px 10px;
         border-radius: 999px;
         background: var(--primary-soft);
-        color: var(--primary);
-        font-size: 0.86rem;
-        font-weight: 700;
+        color: var(--primary-soft-text);
+        font-size: 0.85rem;
+        font-weight: 600;
         border: none;
     }
 
-    .tag-remove {
+    .skill-star-btn {
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0;
+        display: inline-flex;
+        line-height: 1;
+    }
+
+    .skill-star-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .skill-star-btn.starred {
+        color: #f5a623;
+    }
+
+    .skill-star-btn.starred svg {
+        fill: #f5a623;
+    }
+
+    .skill-remove {
         border: none;
         background: transparent;
         color: inherit;
@@ -71,86 +257,86 @@
         padding: 0;
     }
 
-    .tag-input-box {
+    .skill-input-box {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        flex: 1 1 220px;
-        min-width: 220px;
+        flex: 1 1 200px;
+        min-width: 200px;
     }
 
-    .tag-input {
+    .skill-input {
         border: none;
         outline: none;
         background: transparent;
-        font-size: 15px;
+        font-size: 0.9rem;
         min-width: 140px;
         width: 100%;
         color: var(--text);
         padding: 6px 0;
     }
 
-    .tag-add-btn {
+    .skill-add-btn {
         border: none;
         background: var(--primary);
         color: #fff;
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 20px;
+        font-size: 18px;
         line-height: 1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
 
-    .tags-help {
-        margin-top: 10px;
-        font-size: 0.86rem;
-        color: var(--text-muted);
-    }
-
-    #id_requirements_richtext_source {
-        display: none;
-    }
-
+    /* Rich text editor */
     .richtext-toolbar {
         display: flex;
-        gap: 6px;
+        flex-wrap: wrap;
+        gap: 4px;
         margin-bottom: 8px;
+        padding: 6px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface-soft);
     }
 
     .richtext-toolbar button {
-        width: 34px;
-        height: 34px;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
         border-radius: 8px;
-        border: 1px solid var(--border);
-        background: var(--surface);
+        border: 1px solid transparent;
+        background: transparent;
         color: var(--text);
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .richtext-toolbar button:hover {
         border-color: var(--primary);
         color: var(--primary);
+        background: var(--surface);
     }
 
-    .richtext-toolbar button.list-btn {
-        font-size: 0.78rem;
-        font-weight: 700;
+    .richtext-toolbar .rt-sep {
+        width: 1px;
+        background: var(--border);
+        margin: 4px 4px;
     }
 
     .richtext-editor {
-        min-height: 160px;
+        min-height: 240px;
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 12px 14px;
+        padding: 14px 16px;
         background: var(--input-bg);
         color: var(--text);
-        font-size: 0.92rem;
-        line-height: 1.6;
+        font-size: 0.9rem;
+        line-height: 1.65;
         outline: none;
     }
 
@@ -158,107 +344,309 @@
         border-color: var(--primary);
     }
 
-    .richtext-editor ul {
+    .richtext-editor ul,
+    .richtext-editor ol {
         padding-left: 22px;
         margin: 6px 0;
     }
 
-    @media (max-width: 800px) {
-        .form-grid.two-col {
+    .richtext-editor h3 {
+        font-size: 1.05rem;
+        margin: 10px 0 6px;
+    }
+
+    .richtext-editor h4 {
+        font-size: 0.95rem;
+        margin: 8px 0 4px;
+    }
+
+    /* CTC checkbox rows */
+    .ctc-block {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .ctc-check-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ctc-check-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .ctc-range-inputs {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .ctc-range-inputs input {
+        width: 90px;
+    }
+
+    .ctc-check-row label {
+        font-size: 0.86rem;
+        color: var(--text);
+        margin-bottom: 0;
+    }
+
+    .lpa-label {
+        font-size: 0.84rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .jd-form-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+    }
+
+    .jd-form-footer-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+
+        .jd-row-2,
+        .jd-row-3 {
             grid-template-columns: 1fr;
+        }
+
+        .jd-form-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .jd-form-footer-left {
+            justify-content: space-between;
         }
     }
 </style>
 {% endblock %}
 
-
 {% block content %}
-<section class="page-header">
-    <div>
-        <h1>{% if form.instance.pk %}Edit Job Role{% else %}Create Job Role{% endif %}</h1>
-    </div>
-</section>
+<div class="jd-form-header">
+    <a href="{% url 'jobs:list' %}" class="back-icon-btn" title="Back to Job Roles">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    </a>
+    <h1>{% if form.instance.pk %}Edit Job Role{% else %}Create Job Role{% endif %}</h1>
+</div>
 
-<form method="post" class="form-card">
+<form method="post" class="jd-form-grid" id="jobForm">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
 
-    <div class="form-grid two-col">
+    <div class="form-group">
+        <label class="field-label" for="{{ form.title.id_for_label }}">Job Title</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="form-errors">{{ form.title.errors }}</div>{% endif %}
+    </div>
+
+    <div class="jd-row-3">
         <div class="form-group">
-            <label for="{{ form.title.id_for_label }}">Job Title</label>
-            {{ form.title }}
-            {% if form.title.errors %}<div class="form-errors">{{ form.title.errors }}</div>{% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.department.id_for_label }}">Department</label>
-            {{ form.department }}
+            <label class="field-label">Department</label>
+            <div class="glass-select-wrap" data-glass-select data-native-select="{{ form.department.auto_id }}">
+                <button type="button" class="glass-select-trigger">
+                    <span class="glass-select-label">{{ form.department.value|default:"Select a department" }}</span>
+                    <svg class="glass-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <select name="{{ form.department.html_name }}" id="{{ form.department.auto_id }}" class="hidden native-select-source">
+                    {% for value, label in form.fields.department.choices %}
+                    <option value="{{ value }}" {% if form.department.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <ul class="glass-select-list">
+                    {% for value, label in form.fields.department.choices %}
+                    <li data-value="{{ value }}" {% if form.department.value == value %}class="active"{% endif %}>{{ label }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
             {% if form.department.errors %}<div class="form-errors">{{ form.department.errors }}</div>{% endif %}
         </div>
+
         <div class="form-group">
-            <label for="{{ form.location.id_for_label }}">City</label>
-            {{ form.location }}
-            {% if form.location.errors %}<div class="form-errors">{{ form.location.errors }}</div>{% endif %}
+            <label class="field-label">City</label>
+            <div class="glass-select-wrap" data-glass-select>
+                <button type="button" class="glass-select-trigger">
+                    <span class="glass-select-label">{{ form.location.value|default:"Select a city" }}</span>
+                    <svg class="glass-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <select name="{{ form.location.html_name }}" id="{{ form.location.auto_id }}" class="hidden native-select-source">
+                    {% for value, label in form.fields.location.choices %}
+                    <option value="{{ value }}" {% if form.location.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <ul class="glass-select-list">
+                    {% for value, label in form.fields.location.choices %}
+                    <li data-value="{{ value }}" {% if form.location.value == value %}class="active"{% endif %}>{{ label }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
+
         <div class="form-group">
-            <label for="{{ form.employment_type.id_for_label }}">Job Type</label>
-            {{ form.employment_type }}
-            {% if form.employment_type.errors %}<div class="form-errors">{{ form.employment_type.errors }}</div>{% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.experience_min_years.id_for_label }}">Experience Min (Years)</label>
-            {{ form.experience_min_years }}
-            {% if form.experience_min_years.errors %}<div class="form-errors">{{ form.experience_min_years.errors }}</div>{% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.experience_max_years.id_for_label }}">Experience Max (Years)</label>
-            {{ form.experience_max_years }}
-            {% if form.experience_max_years.errors %}<div class="form-errors">{{ form.experience_max_years.errors }}</div>{% endif %}
+            <label class="field-label">Job Type</label>
+            <div class="glass-select-wrap" data-glass-select>
+                <button type="button" class="glass-select-trigger">
+                    <span class="glass-select-label">{{ form.employment_type.value|default:"full_time" }}</span>
+                    <svg class="glass-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <select name="{{ form.employment_type.html_name }}" id="{{ form.employment_type.auto_id }}" class="hidden native-select-source">
+                    {% for value, label in form.fields.employment_type.choices %}
+                    <option value="{{ value }}" {% if form.employment_type.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <ul class="glass-select-list">
+                    {% for value, label in form.fields.employment_type.choices %}
+                    <li data-value="{{ value }}" {% if form.employment_type.value == value %}class="active"{% endif %}>{{ label }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="job-skills-input">Skills <span style="font-weight:400; color:var(--text-muted);">(ideal candidate profile)</span></label>
+        <label class="field-label">Experience</label>
+        <div class="mini-box-group" style="max-width: 320px;">
+            <div class="mini-box-item">
+                <span>Min (years)</span>
+                {{ form.experience_min_years }}
+            </div>
+            <div class="mini-box-sep">–</div>
+            <div class="mini-box-item">
+                <span>Max (years)</span>
+                {{ form.experience_max_years }}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="field-label">Skills <span class="hint">Use Enter or comma to add. Click the star to mark a skill as priority.</span></label>
         {{ form.required_skills }}
-        <div class="tags-wrapper">
-            <div class="tags-content" id="job-tags-content">
-                <div id="job-tag-list"></div>
-                <div class="tag-input-box">
-                    <input type="text" id="job-skills-input" class="tag-input" placeholder="Enter a skill" autocomplete="off">
-                    <button type="button" id="job-tag-add-btn" class="tag-add-btn">+</button>
+        {{ form.skills_data }}
+        <div class="skills-wrapper">
+            <div class="skills-content" id="skillsContent">
+                <div id="skillTagList"></div>
+                <div class="skill-input-box">
+                    <input type="text" id="skillInput" class="skill-input" placeholder="Enter a skill" autocomplete="off">
+                    <button type="button" id="skillAddBtn" class="skill-add-btn">+</button>
                 </div>
             </div>
-            <p class="tags-help">Use Enter, comma, or + to add a skill. Candidates are scored against these.</p>
         </div>
-        {% if form.required_skills.errors %}<div class="form-errors">{{ form.required_skills.errors }}</div>{% endif %}
     </div>
 
     <div class="form-group">
-        <label>Key Responsibilities</label>
+        <label class="field-label">Roles &amp; Responsibilities</label>
         <div class="richtext-toolbar">
             <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
             <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
-            <button type="button" class="list-btn" data-cmd="insertUnorderedList" title="Bullet list">List</button>
+            <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+            <span class="rt-sep"></span>
+            <button type="button" data-cmd="formatBlock" data-value="H3" title="Heading">H1</button>
+            <button type="button" data-cmd="formatBlock" data-value="H4" title="Sub-heading">H2</button>
+            <span class="rt-sep"></span>
+            <button type="button" data-cmd="insertUnorderedList" title="Bullet list">&bull; List</button>
+            <button type="button" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+            <span class="rt-sep"></span>
+            <button type="button" data-cmd="createLink" title="Insert link">🔗</button>
+            <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
         </div>
         <div id="requirementsEditor" class="richtext-editor" contenteditable="true"></div>
         {{ form.requirements }}
-        {% if form.requirements.errors %}<div class="form-errors">{{ form.requirements.errors }}</div>{% endif %}
     </div>
 
     <div class="form-group">
-        <label for="{{ form.description.id_for_label }}">Description of Job</label>
+        <label class="field-label" for="{{ form.description.id_for_label }}">Description of Job</label>
         {{ form.description }}
-        {% if form.description.errors %}<div class="form-errors">{{ form.description.errors }}</div>{% endif %}
     </div>
 
-    <div class="form-group">
-        <label for="{{ form.status.id_for_label }}">Status</label>
-        {{ form.status }}
-        {% if form.status.errors %}<div class="form-errors">{{ form.status.errors }}</div>{% endif %}
+    <div class="jd-row-2">
+        <div class="form-group">
+            <label class="field-label">Priority</label>
+            <div class="glass-select-wrap" data-glass-select>
+                <button type="button" class="glass-select-trigger">
+                    <span class="glass-select-label">{{ form.priority.value|default:"P2" }}</span>
+                    <svg class="glass-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <select name="{{ form.priority.html_name }}" id="{{ form.priority.auto_id }}" class="hidden native-select-source">
+                    {% for value, label in form.fields.priority.choices %}
+                    <option value="{{ value }}" {% if form.priority.value == value %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+                <ul class="glass-select-list">
+                    {% for value, label in form.fields.priority.choices %}
+                    <li data-value="{{ value }}" {% if form.priority.value == value %}class="active"{% endif %}>
+                        {{ value }}
+                        <span class="opt-meaning">{{ label }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="field-label">Cost to Company</label>
+            <div class="ctc-block">
+                {{ form.ctc_mode }}
+                <div class="ctc-check-row">
+                    <input type="checkbox" id="ctcRangeCheck" name="ctc_check" value="range">
+                    <div class="ctc-range-inputs">
+                        {{ form.ctc_min }}
+                        <span>–</span>
+                        {{ form.ctc_max }}
+                        <span class="lpa-label">LPA</span>
+                    </div>
+                </div>
+                <div class="ctc-check-row">
+                    <input type="checkbox" id="ctcNegotiableCheck" name="ctc_check" value="negotiable">
+                    <label for="ctcNegotiableCheck">Negotiable</label>
+                </div>
+                <div class="ctc-check-row">
+                    <input type="checkbox" id="ctcHiddenCheck" name="ctc_check" value="hidden">
+                    <label for="ctcHiddenCheck">Do not mention</label>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save Job Role</button>
-        <a href="{% url 'jobs:list' %}" class="btn btn-secondary">Cancel</a>
+    <div class="jd-form-footer">
+        <div class="jd-form-footer-left">
+            <button type="submit" class="btn btn-primary">Save Job Role</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="glass-select-wrap" data-glass-select style="min-width: 160px;">
+                <button type="button" class="glass-select-trigger">
+                    <span class="glass-select-label">{{ form.status.value|default:"draft" }}</span>
+                    <svg class="glass-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <select name="{{ form.status.html_name }}" id="{{ form.status.auto_id }}" class="hidden native-select-source">
+                    {% for value, label in form.fields.status.choices %}
+                    <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <ul class="glass-select-list">
+                    {% for value, label in form.fields.status.choices %}
+                    <li data-value="{{ value }}" {% if form.status.value == value %}class="active"{% endif %}>{{ label }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <a href="{% url 'jobs:list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
     </div>
 </form>
 {% endblock %}
@@ -266,86 +654,124 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    var hiddenInput = document.getElementById("id_required_skills");
-    var textInput = document.getElementById("job-skills-input");
-    var addButton = document.getElementById("job-tag-add-btn");
-    var tagList = document.getElementById("job-tag-list");
+    // ---- Generic glass select: syncs to a real hidden <select> ----
+    document.querySelectorAll('[data-glass-select]').forEach(function (wrap) {
+        var trigger = wrap.querySelector('.glass-select-trigger');
+        var label = wrap.querySelector('.glass-select-label');
+        var nativeSelect = wrap.querySelector('.native-select-source');
+        var list = wrap.querySelector('.glass-select-list');
 
-    if (hiddenInput && textInput && addButton && tagList) {
-        var skills = [];
-
-        function uniqueSkills(items) {
-            var cleaned = []; var seen = {};
-            items.forEach(function (item) {
-                var value = item.trim();
-                if (!value) return;
-                var key = value.toLowerCase();
-                if (seen[key]) return;
-                seen[key] = true;
-                cleaned.push(value);
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            document.querySelectorAll('.glass-select-wrap.open').forEach(function (w) {
+                if (w !== wrap) w.classList.remove('open');
             });
-            return cleaned;
-        }
-
-        function syncHiddenInput() { hiddenInput.value = skills.join(", "); }
-
-        function renderTags() {
-            tagList.innerHTML = "";
-            skills.forEach(function (skill, index) {
-                var tag = document.createElement("span");
-                tag.className = "tag-item";
-                var text = document.createElement("span");
-                text.textContent = skill;
-                var removeButton = document.createElement("button");
-                removeButton.type = "button";
-                removeButton.className = "tag-remove";
-                removeButton.innerHTML = "&times;";
-                removeButton.addEventListener("click", function () {
-                    skills.splice(index, 1);
-                    syncHiddenInput();
-                    renderTags();
-                    textInput.focus();
-                });
-                tag.appendChild(text);
-                tag.appendChild(removeButton);
-                tagList.appendChild(tag);
-            });
-        }
-
-        function addSkill(rawValue) {
-            var value = rawValue.trim();
-            if (!value) return;
-            var exists = skills.some(function (s) { return s.toLowerCase() === value.toLowerCase(); });
-            if (!exists) { skills.push(value); syncHiddenInput(); renderTags(); }
-            textInput.value = "";
-            textInput.focus();
-        }
-
-        function handleInputSubmit() {
-            var value = textInput.value.trim();
-            if (value) addSkill(value);
-        }
-
-        addButton.addEventListener("click", handleInputSubmit);
-        textInput.addEventListener("keydown", function (event) {
-            if (event.key === "Enter" || event.key === ",") {
-                event.preventDefault();
-                handleInputSubmit();
-            } else if (event.key === "Backspace" && textInput.value === "" && skills.length) {
-                skills.pop(); syncHiddenInput(); renderTags();
-            }
+            wrap.classList.toggle('open');
         });
 
-        var formElement = hiddenInput.closest("form");
-        if (formElement) {
-            formElement.addEventListener("submit", function () { handleInputSubmit(); syncHiddenInput(); });
-        }
+        list.querySelectorAll('li').forEach(function (li) {
+            li.addEventListener('click', function (e) {
+                e.stopPropagation();
+                list.querySelectorAll('li').forEach(function (i) { i.classList.remove('active'); });
+                li.classList.add('active');
+                label.textContent = li.getAttribute('data-value') || li.childNodes[0].textContent.trim();
+                if (nativeSelect) { nativeSelect.value = li.getAttribute('data-value'); }
+                wrap.classList.remove('open');
+            });
+        });
+    });
 
-        skills = hiddenInput.value ? uniqueSkills(hiddenInput.value.split(",")) : [];
-        syncHiddenInput();
-        renderTags();
+    document.addEventListener('click', function () {
+        document.querySelectorAll('.glass-select-wrap.open').forEach(function (w) { w.classList.remove('open'); });
+    });
+
+    // ---- Skills with star priority ----
+    var hiddenSkillsText = document.getElementById("{{ form.required_skills.id_for_label }}");
+    var hiddenSkillsData = document.getElementById("{{ form.skills_data.id_for_label }}");
+    var skillInput = document.getElementById("skillInput");
+    var skillAddBtn = document.getElementById("skillAddBtn");
+    var skillTagList = document.getElementById("skillTagList");
+
+    var skills = [];
+    try {
+        var initial = hiddenSkillsData.value ? JSON.parse(hiddenSkillsData.value) : [];
+        if (Array.isArray(initial) && initial.length) {
+            skills = initial;
+        } else if (hiddenSkillsText.value) {
+            skills = hiddenSkillsText.value.split(",").map(function (s) {
+                return { name: s.trim(), priority: false };
+            }).filter(function (s) { return s.name; });
+        }
+    } catch (e) { skills = []; }
+
+    function starIconSvg(filled) {
+        return '<svg viewBox="0 0 24 24" fill="' + (filled ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
     }
 
+    function syncHidden() {
+        hiddenSkillsData.value = JSON.stringify(skills);
+        hiddenSkillsText.value = skills.map(function (s) { return s.name; }).join(", ");
+    }
+
+    function renderSkills() {
+        skillTagList.innerHTML = "";
+        skillTagList.style.display = "contents";
+        skills.forEach(function (skill, index) {
+            var pill = document.createElement("span");
+            pill.className = "skill-pill-edit";
+            pill.innerHTML =
+                '<button type="button" class="skill-star-btn' + (skill.priority ? ' starred' : '') + '" data-index="' + index + '">' + starIconSvg(skill.priority) + '</button>' +
+                '<span>' + skill.name + '</span>' +
+                '<button type="button" class="skill-remove" data-index="' + index + '">&times;</button>';
+            skillTagList.appendChild(pill);
+        });
+
+        skillTagList.querySelectorAll('.skill-star-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idx = Number(btn.getAttribute('data-index'));
+                skills[idx].priority = !skills[idx].priority;
+                syncHidden();
+                renderSkills();
+            });
+        });
+        skillTagList.querySelectorAll('.skill-remove').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idx = Number(btn.getAttribute('data-index'));
+                skills.splice(idx, 1);
+                syncHidden();
+                renderSkills();
+            });
+        });
+    }
+
+    function addSkill(rawValue) {
+        var value = rawValue.trim();
+        if (!value) return;
+        var exists = skills.some(function (s) { return s.name.toLowerCase() === value.toLowerCase(); });
+        if (!exists) {
+            skills.push({ name: value, priority: false });
+            syncHidden();
+            renderSkills();
+        }
+        skillInput.value = "";
+    }
+
+    skillAddBtn.addEventListener('click', function () { addSkill(skillInput.value); });
+    skillInput.addEventListener('keydown', function (event) {
+        if (event.key === "Enter" || event.key === ",") {
+            event.preventDefault();
+            addSkill(skillInput.value.replace(",", ""));
+        } else if (event.key === "Backspace" && skillInput.value === "" && skills.length) {
+            skills.pop();
+            syncHidden();
+            renderSkills();
+        }
+    });
+
+    renderSkills();
+    syncHidden();
+
+    // ---- Rich text editor ----
     var editor = document.getElementById("requirementsEditor");
     var source = document.getElementById("id_requirements_richtext_source");
     if (editor && source) {
@@ -354,15 +780,45 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".richtext-toolbar button").forEach(function (btn) {
             btn.addEventListener("click", function () {
                 editor.focus();
-                document.execCommand(btn.getAttribute("data-cmd"), false, null);
+                var cmd = btn.getAttribute("data-cmd");
+                var value = btn.getAttribute("data-value") || null;
+                if (cmd === "createLink") {
+                    var url = prompt("Enter URL:", "https://");
+                    if (url) document.execCommand(cmd, false, url);
+                } else {
+                    document.execCommand(cmd, false, value);
+                }
             });
         });
 
-        var richForm = source.closest("form");
-        if (richForm) {
-            richForm.addEventListener("submit", function () { source.value = editor.innerHTML; });
-        }
+        editor.addEventListener("input", function () { source.value = editor.innerHTML; });
+        var jobForm = document.getElementById("jobForm");
+        jobForm.addEventListener("submit", function () { source.value = editor.innerHTML; });
     }
+
+    // ---- CTC checkboxes (mutually exclusive) ----
+    var ctcModeInput = document.getElementById("{{ form.ctc_mode.id_for_label }}");
+    var ctcRangeCheck = document.getElementById("ctcRangeCheck");
+    var ctcNegotiableCheck = document.getElementById("ctcNegotiableCheck");
+    var ctcHiddenCheck = document.getElementById("ctcHiddenCheck");
+    var ctcMinInput = document.getElementById("{{ form.ctc_min.id_for_label }}");
+    var ctcMaxInput = document.getElementById("{{ form.ctc_max.id_for_label }}");
+
+    function setCtcMode(mode) {
+        ctcModeInput.value = mode;
+        ctcRangeCheck.checked = mode === "range";
+        ctcNegotiableCheck.checked = mode === "negotiable";
+        ctcHiddenCheck.checked = mode === "hidden";
+        var rangeActive = mode === "range";
+        ctcMinInput.disabled = !rangeActive;
+        ctcMaxInput.disabled = !rangeActive;
+    }
+
+    ctcRangeCheck.addEventListener("change", function () { setCtcMode(this.checked ? "range" : "hidden"); });
+    ctcNegotiableCheck.addEventListener("change", function () { setCtcMode(this.checked ? "negotiable" : "hidden"); });
+    ctcHiddenCheck.addEventListener("change", function () { setCtcMode(this.checked ? "hidden" : "hidden"); });
+
+    setCtcMode(ctcModeInput.value || "hidden");
 });
 </script>
 {% endblock %}
