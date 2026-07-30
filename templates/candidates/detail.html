@@ -2,144 +2,118 @@
 {% extends 'base.html' %}
 {% load resume_extras %}
 {% block title %}{{ application.full_name }} | ATS Workspace{% endblock %}
-
 {% block extra_head %}
 <style>
   .candidate-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(320px, 1fr);
-    gap: 16px;
+    gap: 28px;
     align-items: start;
   }
 
-  .candidate-top {
+  .candidate-header-row {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
+    justify-content: space-between;
     gap: 16px;
-    margin-bottom: 14px;
+    margin-bottom: 26px;
     flex-wrap: wrap;
+  }
+
+  .candidate-header-row h1 {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+  }
+
+  .candidate-header-row p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .candidate-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .decision-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 13px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: filter 0.15s ease, transform 0.15s ease;
+  }
+
+  .decision-pill:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+
+  .decision-review {
+    background: var(--warning-soft);
+    color: var(--warning-text);
+  }
+
+  .decision-shortlist {
+    background: var(--success-soft);
+    color: var(--success-text);
+  }
+
+  .decision-interview {
+    background: var(--info-soft);
+    color: var(--info-text);
+  }
+
+  .decision-hired {
+    background: var(--hired-soft);
+    color: var(--hired-text);
+  }
+
+  .decision-reject {
+    background: var(--danger-soft);
+    color: var(--danger-text);
+  }
+
+  .section-block {
+    margin-bottom: 28px;
+  }
+
+  .section-block h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 14px;
   }
 
   .info-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
-    margin: 18px 0;
+    margin: 0 0 18px;
   }
 
   .info-item {
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--surface-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .info-label {
-    display: block;
     color: var(--text-muted);
-    font-size: 0.82rem;
-    margin-bottom: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   .info-value {
     font-weight: 600;
     color: var(--text);
     font-size: 0.92rem;
-  }
-
-  .decision-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-  }
-
-  .decision-box {
-    border-radius: 10px;
-    padding: 7px;
-    text-align: center;
-  }
-
-  .decision-box a {
-    display: block;
-    font-weight: 600;
-    font-size: 0.86rem;
-  }
-
-  .decision-review {
-    background: var(--warning-soft);
-    border: 1px solid var(--warning-soft);
-  }
-
-  .decision-review:hover {
-    transition: 0.2s ease-in-out;
-    border: 1px solid var(--warning-text);
-    box-shadow: 0 0 5px var(--warning-text);
-  }
-  
-  .decision-review a {
-    color: var(--warning-text);
-  }
-  
-  .decision-shortlist {
-    background: var(--success-soft);
-    border: 1px solid var(--success-soft);
-  }
-  
-  .decision-shortlist a {
-    color: var(--success-text);
-  }
-  
-  .decision-shortlist:hover {
-    transition: 0.2s ease-in-out;
-    border: 1px solid var(--success-text);
-    box-shadow: 0 0 5px var(--success-text);
-  }
-  
-  .decision-reject {
-    border: 1px solid var(--danger-soft);
-    background: var(--danger-soft);
-  }
-  
-  .decision-reject a {
-    color: var(--danger-text);
-  }
-  
-  .decision-reject:hover {
-    transition: 0.2s ease-in-out;
-    border: 1px solid var(--danger-text);
-    box-shadow: 0 0 5px var(--danger-text);
-  }
-  
-  .decision-interview {
-    background: var(--info-soft);
-    border: 1px solid var(--info-soft);
-  }
-  
-  .decision-interview a {
-    color: var(--info-text);
-  }
-  
-  .decision-interview:hover {
-    transition: 0.2s ease-in-out;
-    border: 1px solid var(--info-text);
-    box-shadow: 0 0 5px var(--info-text);
-  }
-  
-  .decision-hired {
-    background: var(--hired-soft);
-    border: 1px solid var(--hired-soft);
-  }
-  
-  .decision-hired a {
-    color: var(--hired-text);
-  }
-
-  .decision-hired:hover {
-    transition: 0.2s ease-in-out;
-    border: 1px solid var(--hired-text);
-    box-shadow: 0 0 10px var(--hired-text);
   }
 
   .resume-list {
@@ -204,7 +178,7 @@
   .candidate-side {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 26px;
   }
 
   .dropzone {
@@ -266,36 +240,44 @@
     .candidate-layout {
       grid-template-columns: 1fr;
     }
+  }
 
-    .decision-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  @media (max-width: 700px) {
+    .candidate-header-row {
+      flex-direction: column;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
 {% endblock %}
 
-
 {% block content %}
-<section class="page-header">
+<div class="candidate-header-row">
   <div>
     <h1>{{ application.full_name }}</h1>
     <p>{{ application.email }} &middot; {{ application.phone|default:"-" }}</p>
   </div>
-  <div class="page-actions">
+  <div class="candidate-header-actions">
+    <a href="{% url 'applications:quick-status' application.pk 'under_review' %}" class="decision-pill decision-review">Under Review</a>
+    <a href="{% url 'applications:quick-status' application.pk 'shortlisted' %}" class="decision-pill decision-shortlist">Shortlist</a>
+    <a href="{% url 'applications:quick-status' application.pk 'interview' %}" class="decision-pill decision-interview">Interview</a>
+    <a href="{% url 'applications:quick-status' application.pk 'hired' %}" class="decision-pill decision-hired">Hired</a>
+    <a href="{% url 'applications:quick-status' application.pk 'rejected' %}" class="decision-pill decision-reject">Reject</a>
     <a href="{% url 'applications:edit' application.pk %}" class="icon-btn-sm" title="Edit candidate">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
     </a>
   </div>
-</section>
+</div>
 
 <div class="candidate-layout">
   <section>
-    <article class="info-card">
-      <div class="candidate-top">
-        <span class="badge badge-{{ application.status }}">{{ application.get_status_display }}</span>
-      </div>
+    <div class="section-block">
+      <span class="badge badge-{{ application.status }}">{{ application.get_status_display }}</span>
 
-      <div class="info-grid">
+      <div class="info-grid" style="margin-top: 18px;">
         <div class="info-item">
           <span class="info-label">Job Role</span>
           <span class="info-value">{{ application.job.title }}</span>
@@ -318,31 +300,10 @@
       <div style="color: var(--text-muted); line-height: 1.6; font-size: 0.9rem;">
         {{ application.summary|default:"No summary yet."|linebreaks }}
       </div>
-    </article>
+    </div>
 
-    <article class="info-card" style="margin-top: 16px;">
-      <h3 class="section-title">Application Decision</h3>
-      <div class="decision-grid">
-        <div class="decision-box decision-review">
-          <a href="{% url 'applications:quick-status' application.pk 'under_review' %}">Under Review</a>
-        </div>
-        <div class="decision-box decision-shortlist">
-          <a href="{% url 'applications:quick-status' application.pk 'shortlisted' %}">Shortlist</a>
-        </div>
-        <div class="decision-box decision-interview">
-          <a href="{% url 'applications:quick-status' application.pk 'interview' %}">Interview</a>
-        </div>
-        <div class="decision-box decision-hired">
-          <a href="{% url 'applications:quick-status' application.pk 'hired' %}">Hired</a>
-        </div>
-        <div class="decision-box decision-reject">
-          <a href="{% url 'applications:quick-status' application.pk 'rejected' %}">Reject</a>
-        </div>
-      </div>
-    </article>
-
-    <article class="info-card" style="margin-top: 16px;">
-      <h3 class="section-title">Status History</h3>
+    <div class="section-block">
+      <h3>Status History</h3>
       {% if application.status_history.all %}
       <ul class="history-list">
         {% for row in application.status_history.all %}
@@ -355,12 +316,12 @@
       {% else %}
       <div class="empty-state left-empty">No status history yet.</div>
       {% endif %}
-    </article>
+    </div>
   </section>
 
   <aside class="candidate-side">
-    <article class="info-card">
-      <h3 class="section-title">Resume Files</h3>
+    <div class="section-block" style="margin-bottom: 0;">
+      <h3>Resume Files</h3>
       <ul class="resume-list" id="resumeList">
         {% for resume in application.resume_files.all %}
         <li data-file-id="{{ resume.pk }}">
@@ -379,10 +340,10 @@
         <input type="file" id="dzFileInput" accept=".pdf,.doc,.docx">
         <div class="dz-progress" id="dzProgress"><div class="dz-progress-bar" id="dzProgressBar"></div></div>
       </div>
-    </article>
+    </div>
 
-    <article class="info-card">
-      <h3 class="section-title">Skills</h3>
+    <div class="section-block" style="margin-bottom: 0;">
+      <h3>Skills</h3>
       {% if application.skill_list %}
       <div class="skills-cloud">
         {% for skill in application.skill_list %}
@@ -392,7 +353,7 @@
       {% else %}
       <div class="empty-state left-empty">No skills added yet.</div>
       {% endif %}
-    </article>
+    </div>
   </aside>
 </div>
 {% endblock %}
