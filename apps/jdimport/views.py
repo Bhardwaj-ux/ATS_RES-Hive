@@ -79,6 +79,7 @@ def convert_file(request, file_id):
     try:
         jd_file.file.open("rb")
         if jd_file.file_type == "pdf":
+            # PDF -> DOCX -> Markdown (see services/conversion.py)
             markdown_text = convert_pdf_to_markdown(jd_file.file)
         else:
             markdown_text = convert_docx_to_markdown(jd_file.file)
@@ -162,6 +163,11 @@ def review_detail(request, file_id):
             )
             return redirect("jdimport:review_list")
     else:
+        import json as json_lib
+
+        skills_data = [
+            {"name": s, "priority": False} for s in extracted.get("skills", [])
+        ]
         initial = {
             "title": extracted.get("title", ""),
             "department": extracted.get("department", ""),
@@ -172,6 +178,9 @@ def review_detail(request, file_id):
             "description": extracted.get("description", ""),
             "requirements": extracted.get("requirements", ""),
             "required_skills": ", ".join(extracted.get("skills", [])).lower(),
+            "skills_data": json_lib.dumps(skills_data),
+            "priority": Job.Priority.P2,
+            "ctc_mode": Job.CTCMode.HIDDEN,
             "status": Job.JobStatus.DRAFT,
         }
         form = JobForm(initial=initial)
@@ -215,6 +224,9 @@ def bulk_action(request):
     created = 0
     for jd_file in files:
         extracted = jd_file.extracted_json or {}
+        skills_data = [
+            {"name": s, "priority": False} for s in extracted.get("skills", [])
+        ]
         job = Job.objects.create(
             title=extracted.get("title", "") or jd_file.original_filename,
             department=extracted.get("department", ""),
@@ -225,6 +237,9 @@ def bulk_action(request):
             description=extracted.get("description", ""),
             requirements=extracted.get("requirements", ""),
             required_skills=", ".join(extracted.get("skills", [])),
+            skills_data=skills_data,
+            priority=Job.Priority.P2,
+            ctc_mode=Job.CTCMode.HIDDEN,
             status=Job.JobStatus.DRAFT,
             created_by=request.user,
         )

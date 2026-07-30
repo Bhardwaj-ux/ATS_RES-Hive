@@ -1,0 +1,117 @@
+<!-- FILEPATH: templates/interviews/index.html -->
+{% extends 'base.html' %}
+
+{% block title %}Interviews | ATS Workspace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .coming-soon-hero {
+        text-align: center;
+        padding: 40px 20px 8px;
+    }
+
+    .coming-soon-hero h1 {
+        font-size: 2rem;
+        margin: 0 0 8px;
+    }
+
+    .coming-soon-hero p {
+        color: var(--text-muted);
+        font-size: 0.94rem;
+        margin: 0;
+    }
+
+    .greyed-out {
+        opacity: 0.55;
+        filter: grayscale(1);
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .interview-section-title {
+        margin: 34px 0 16px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .interview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+    }
+
+    .interview-placeholder-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        background: var(--surface-soft);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .placeholder-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--border);
+    }
+
+    .placeholder-line {
+        height: 10px;
+        border-radius: 6px;
+        background: var(--border);
+    }
+
+    .placeholder-line.short {
+        width: 55%;
+    }
+
+    .placeholder-line.tiny {
+        width: 35%;
+        height: 8px;
+    }
+
+    .placeholder-badge {
+        display: inline-block;
+        width: 60px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--border);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="coming-soon-hero">
+    <h1>Interviews</h1>
+    <p>This module is coming soon. Below is a preview of how scheduled interviews will appear once this feature goes live.</p>
+</div>
+
+<div class="greyed-out">
+    <h3 class="interview-section-title">Interviews Scheduled for Today</h3>
+    <div class="interview-grid">
+        {% for i in "12345" %}
+        <div class="interview-placeholder-card">
+            <div class="placeholder-avatar"></div>
+            <div class="placeholder-line"></div>
+            <div class="placeholder-line short"></div>
+            <span class="placeholder-badge"></span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h3 class="interview-section-title">Interviews Scheduled this Week</h3>
+    <div class="interview-grid">
+        {% for i in "12345678" %}
+        <div class="interview-placeholder-card">
+            <div class="placeholder-avatar"></div>
+            <div class="placeholder-line"></div>
+            <div class="placeholder-line short"></div>
+            <div class="placeholder-line tiny"></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

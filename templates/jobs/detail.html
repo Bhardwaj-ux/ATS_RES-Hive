@@ -5,31 +5,120 @@
 
 {% block extra_head %}
 <style>
+  .jd-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 26px;
+    flex-wrap: wrap;
+  }
+
+  .back-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    flex-shrink: 0;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .back-icon-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .back-icon-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .jd-detail-header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .jd-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .icon-btn-sm.brighten:hover {
+    filter: brightness(1.4);
+  }
+
   .overview-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
   }
 
   .overview-item {
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--surface-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .overview-label {
-    display: block;
     color: var(--text-muted);
-    font-size: 0.82rem;
-    margin-bottom: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   .overview-value {
-    display: block;
     color: var(--text);
     font-weight: 600;
-    font-size: 0.92rem;
+    font-size: 0.94rem;
+  }
+
+  .section-block {
+    margin-bottom: 30px;
+  }
+
+  .section-block h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 14px;
+  }
+
+  .rich-content {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  .rich-content h1,
+  .rich-content h2,
+  .rich-content h3,
+  .rich-content h4 {
+    color: var(--text);
+    margin: 14px 0 8px;
+  }
+
+  .rich-content ul,
+  .rich-content ol {
+    padding-left: 22px;
+    margin: 8px 0;
+  }
+
+  .rich-content p {
+    margin: 8px 0;
+  }
+
+  .rich-content a {
+    color: var(--primary);
+    text-decoration: underline;
   }
 
   .skills-cloud {
@@ -41,7 +130,8 @@
   .skill-pill {
     display: inline-flex;
     align-items: center;
-    padding: 6px 11px;
+    gap: 6px;
+    padding: 6px 12px;
     border-radius: 999px;
     background: var(--primary-soft);
     color: var(--primary-soft-text);
@@ -49,33 +139,47 @@
     font-weight: 600;
   }
 
-  .job-detail-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  .skill-pill svg {
+    width: 13px;
+    height: 13px;
+    fill: #f5a623;
+    stroke: #f5a623;
+    flex-shrink: 0;
   }
 
-  @media (max-width: 1000px) {
+  @media (max-width: 1100px) {
     .overview-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 700px) {
     .overview-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .jd-detail-header h1 {
+      flex-basis: 100%;
+      order: 3;
     }
   }
 </style>
 {% endblock %}
 
-
 {% block content %}
-<section class="page-header">
-  <div>
-    <h1>{{ job.title }}</h1>
-  </div>
-  <div class="page-actions">
+<div class="jd-detail-header">
+  <a href="{% url 'jobs:list' %}" class="back-icon-btn" title="Back to Job Roles">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+  </a>
+  <h1>{{ job.title }}</h1>
+  <div class="jd-detail-actions">
+    {% with source_file=job.imported_source_file %}
+    {% if source_file %}
+    <a href="{{ source_file.file.url }}" target="_blank" rel="noopener noreferrer" class="icon-btn-sm brighten" title="Open JD File">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+    </a>
+    {% endif %}
+    {% endwith %}
     <a href="{% url 'jobs:edit' job.pk %}" class="icon-btn-sm" title="Edit role">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
     </a>
@@ -83,45 +187,70 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
     </a>
   </div>
-</section>
+</div>
 
-<section class="job-detail-layout">
-  <article class="info-card">
-    <h2 class="section-title">Role Overview</h2>
-    <div class="overview-grid">
-      <div class="overview-item"><span class="overview-label">Department</span><span class="overview-value">{{ job.department }}</span></div>
-      <div class="overview-item"><span class="overview-label">Location</span><span class="overview-value">{{ job.location|default:"-" }}</span></div>
-      <div class="overview-item"><span class="overview-label">Employment Type</span><span class="overview-value">{{ job.get_employment_type_display }}</span></div>
-      <div class="overview-item"><span class="overview-label">Status</span><span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span></div>
+<div class="section-block">
+  <h3>Overview</h3>
+  <div class="overview-grid">
+    <div class="overview-item">
+      <span class="overview-label">Status</span>
+      <span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span>
     </div>
-  </article>
+    <div class="overview-item">
+      <span class="overview-label">Priority</span>
+      <span class="overview-value">{{ job.get_priority_display }}</span>
+    </div>
+    <div class="overview-item">
+      <span class="overview-label">Department</span>
+      <span class="overview-value">{{ job.department }}</span>
+    </div>
+    <div class="overview-item">
+      <span class="overview-label">City</span>
+      <span class="overview-value">{{ job.location|default:"-" }}</span>
+    </div>
+    <div class="overview-item">
+      <span class="overview-label">Job Type</span>
+      <span class="overview-value">{{ job.get_employment_type_display }}</span>
+    </div>
+  </div>
 
-  <article class="info-card">
-    <h3 class="section-title">Description</h3>
-    <div style="color: var(--text-muted); line-height: 1.7; font-size: 0.9rem;">{{ job.description|default:"No description available."|linebreaks }}</div>
-  </article>
+  <div class="overview-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 500px;">
+    <div class="overview-item">
+      <span class="overview-label">Experience</span>
+      <span class="overview-value">{{ job.experience_min_years }} – {{ job.experience_max_years }} years</span>
+    </div>
+    <div class="overview-item">
+      <span class="overview-label">Cost to Company</span>
+      <span class="overview-value">{{ job.ctc_display }}</span>
+    </div>
+  </div>
+</div>
 
-  <article class="info-card">
-    <h3 class="section-title">Requirements</h3>
-    <div style="color: var(--text-muted); line-height: 1.7; font-size: 0.9rem;">{{ job.requirements|default:"No requirements added yet."|linebreaks }}</div>
-  </article>
-  
-  <article class="info-card">
-    <h3 class="section-title">Key Responsibilities</h3>
-    <div style="color: var(--text-muted); line-height: 1.7; font-size: 0.9rem;">
-      {{ job.requirements|default:"No responsibilities added yet."|safe }}
-    </div>
-    <br><br>
-    <h3 class="section-title">Skills</h3>
-    {% if job.skill_list %}
-    <div class="skills-cloud">
-      {% for skill in job.skill_list %}
-      <span class="skill-pill">{{ skill }}</span>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state left-empty">No required skills set for this role yet.</div>
-    {% endif %}
-  </article>
-</section>
+<div class="section-block">
+  <h3>Roles &amp; Responsibilities</h3>
+  <div class="rich-content">{{ job.requirements|safe }}</div>
+</div>
+
+<div class="section-block">
+  <h3>Description</h3>
+  <div class="rich-content">{{ job.description|default:"No description available."|linebreaks }}</div>
+</div>
+
+<div class="section-block">
+  <h3>Skills</h3>
+  {% if job.skill_pills %}
+  <div class="skills-cloud">
+    {% for skill in job.skill_pills %}
+    <span class="skill-pill">
+      {% if skill.priority %}
+      <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      {% endif %}
+      {{ skill.name }}
+    </span>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state left-empty">No required skills set for this role yet.</div>
+  {% endif %}
+</div>
 {% endblock %}

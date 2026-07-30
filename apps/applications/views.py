@@ -5,8 +5,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -20,61 +21,96 @@ from .models import Application
 from .services import record_status_change
 
 
+def filter_applications_queryset(request):
+    qs = Application.objects.select_related("job").all()
+    q = request.GET.get("q", "").strip()
+    job_id = request.GET.get("job")
+    status = request.GET.get("status")
+    source = request.GET.get("source", "").strip()
+    exp_min = request.GET.get("exp_min")
+    exp_max = request.GET.get("exp_max")
+
+    if q:
+        matched_statuses = [
+            value
+            for value, label in Application.Status.choices
+            if q.lower() in label.lower()
+        ]
+        text_filter = (
+            Q(full_name__icontains=q)
+            | Q(email__icontains=q)
+            | Q(job__title__icontains=q)
+            | Q(skills__icontains=q)
+            | Q(source__icontains=q)
+        )
+        if matched_statuses:
+            text_filter |= Q(status__in=matched_statuses)
+        qs = qs.filter(text_filter)
+
+    if job_id:
+        qs = qs.filter(job_id=job_id)
+    if status:
+        qs = qs.filter(status=status)
+    if source:
+        qs = qs.filter(source__icontains=source)
+    if exp_min:
+        try:
+            qs = qs.filter(total_experience_years__gte=float(exp_min))
+        except ValueError:
+            pass
+    if exp_max:
+        try:
+            qs = qs.filter(total_experience_years__lte=float(exp_max))
+        except ValueError:
+            pass
+    return qs.distinct()
+
+
+def _attach_scores(applications):
+    for application in applications:
+        score = application.match_score()
+        if score is None:
+            application.score_level = "na"
+            application.score_display = "—"
+        else:
+            application.score_display = score
+            if score >= 70:
+                application.score_level = "green"
+            elif score >= 40:
+                application.score_level = "yellow"
+            else:
+                application.score_level = "red"
+    return applications
+
+
 class CandidateListView(LoginRequiredMixin, ListView):
     model = Application
     template_name = "candidates/list.html"
     context_object_name = "applications"
 
     def get_queryset(self):
-        qs = Application.objects.select_related("job").all()
-        q = self.request.GET.get("q", "").strip()
-        job_id = self.request.GET.get("job")
-        status = self.request.GET.get("status")
-        source = self.request.GET.get("source", "").strip()
-        exp_min = self.request.GET.get("exp_min")
-        exp_max = self.request.GET.get("exp_max")
-
-        if q:
-            qs = qs.filter(Q(full_name__icontains=q) | Q(email__icontains=q))
-        if job_id:
-            qs = qs.filter(job_id=job_id)
-        if status:
-            qs = qs.filter(status=status)
-        if source:
-            qs = qs.filter(source__icontains=source)
-        if exp_min:
-            try:
-                qs = qs.filter(total_experience_years__gte=float(exp_min))
-            except ValueError:
-                pass
-        if exp_max:
-            try:
-                qs = qs.filter(total_experience_years__lte=float(exp_max))
-            except ValueError:
-                pass
-        return qs
+        return filter_applications_queryset(self.request)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        for application in context["applications"]:
-            score = application.match_score()
-            if score is None:
-                application.score_level = "na"
-                application.score_display = "—"
-            else:
-                application.score_display = score
-                if score >= 70:
-                    application.score_level = "green"
-                elif score >= 40:
-                    application.score_level = "yellow"
-                else:
-                    application.score_level = "red"
+        _attach_scores(context["applications"])
         context["jobs_for_filter"] = Job.objects.filter(is_active=True).order_by(
             "title"
         )
         context["status_choices"] = Application.Status.choices
         context["current_filters"] = self.request.GET
         return context
+
+
+@login_required
+@require_GET
+def candidates_search_ajax(request):
+    applications = list(filter_applications_queryset(request))
+    _attach_scores(applications)
+    html = render_to_string(
+        "candidates/_table_rows.html", {"applications": applications}, request=request
+    )
+    return JsonResponse({"ok": True, "html": html, "count": len(applications)})
 
 
 class CandidateCreateView(LoginRequiredMixin, CreateView):

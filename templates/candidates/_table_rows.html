@@ -1,0 +1,53 @@
+{% if applications %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th style="width:36px;"><input type="checkbox" class="row-check" id="selectAll"></th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Job Role</th>
+            <th>Status</th>
+            <th>Experience</th>
+            <th>
+                <span class="score-head">
+                    Score
+                    <span class="info-tip">
+                        <span class="info-tip-btn">i</span>
+                        <span class="info-tip-panel">
+                            <div class="info-tip-row"><span class="info-tip-dot"
+                                    style="background:var(--success-soft);"></span>&colon; 70 &ndash; 100%</div>
+                            <div class="info-tip-row"><span class="info-tip-dot"
+                                    style="background:var(--warning-soft);"></span>&colon; 40 &ndash; 69%</div>
+                            <div class="info-tip-row"><span class="info-tip-dot"
+                                    style="background:var(--danger-text);"></span>&colon; 0 &ndash; 39%</div>
+                            <div class="info-tip-row"><span class="info-tip-dot">&ndash;</span>
+                                &colon; Score not Calculable
+                            </div>
+                        </span>
+                    </span>
+                </span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for application in applications %}
+        <tr>
+            <td><input type="checkbox" class="row-check row-check-item" value="{{ application.pk }}"></td>
+            <td><a href="{% url 'applications:detail' application.pk %}" class="text-link">{{ application.full_name }}</a></td>
+            <td>{{ application.email }}</td>
+            <td>{{ application.job.title }}</td>
+            <td><span class="badge badge-{{ application.status }}">{{ application.get_status_display }}</span></td>
+            <td>{{ application.total_experience_years|default:"0.0" }} yrs</td>
+            <td>
+                <div class="score-dial score-{{ application.score_level }}"
+                    style="--score: {{ application.score_display | default:0 }};">
+                    <span>{% if application.score_level == 'na' %}&mdash;{% else %}{{ application.score_display }}%{% endif %}</span>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">No candidates match your search or filters.</div>
+{% endif %}

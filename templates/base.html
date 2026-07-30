@@ -1480,6 +1480,10 @@
           <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
           <span>Folks</span>
         </a>
+        <a href="{% url 'interviews:index' %}" class="nav-item{% if request.resolver_match.namespace == 'interviews' %} active{% endif %}">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></span>
+          <span>Interviews</span>
+        </a>
       </nav>
 
     </div>
@@ -1501,6 +1505,8 @@
             <strong>Candidates</strong><span>Track applicants through your pipeline</span>
           {% elif request.resolver_match.namespace == 'folks' %}
             <strong>Folks</strong><span>Team collaboration</span>
+          {% elif request.resolver_match.namespace == 'interviews' %}
+            <strong>Interviews</strong><span>Scheduled interviews at a glance</span>
           {% elif request.resolver_match.namespace == 'accounts' %}
             <strong>Settings</strong><span>Workspace &amp; account preferences</span>
           {% elif request.resolver_match.namespace == 'resumes' %}
