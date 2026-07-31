@@ -8,7 +8,7 @@ echo "STEP 2: generating any missing migrations"
 python manage.py makemigrations --no-input
 
 echo "STEP 3: running migrations"
-python manage.py migrate --no-input
+python manage.py migrate --no-input --fake-initial
 
 echo "STEP 4: building React frontend"
 cd frontend

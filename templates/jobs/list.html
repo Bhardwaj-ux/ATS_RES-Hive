@@ -424,7 +424,7 @@
                         All statuses
                     </li>
                     {% for value, label in status_choices %}
-                    <li data-value="{{ value }}" {% if current_filters.status==value %}class="active" {% endif %}>
+                    <li data-value="{{ value }}" {% if current_filters.status == value %}class="active" {% endif %}>
                         {{ label }}
                     </li>
                     {% endfor %}
@@ -448,7 +448,7 @@
                         All types
                     </li>
                     {% for value, label in employment_type_choices %}
-                    <li data-value="{{ value }}" {% if current_filters.employment_type==value %}class="active" {% endif %}>
+                    <li data-value="{{ value }}" {% if current_filters.employment_type == value %}class="active" {% endif %}>
                         {{ label }}
                     </li>
                     {% endfor %}

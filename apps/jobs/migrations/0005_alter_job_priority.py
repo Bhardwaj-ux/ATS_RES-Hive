@@ -14,9 +14,9 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[
                     ("P0", "P0 — Critical (Hire Immediately)"),
-                    ("P1", "P1 — High Priority"),
-                    ("P2", "P2 — Moderate Priority"),
-                    ("P3", "P3 — Low Priority (Backlog)"),
+                    ("P1", "P1 — High priority"),
+                    ("P2", "P2 — Moderate priority"),
+                    ("P3", "P3 — Low priority (Backlog)"),
                 ],
                 default="P2",
                 max_length=2,
