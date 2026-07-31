@@ -8,10 +8,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Elecbits | ATS Workspace{% endblock %}</title>
 
-<link rel="icon" type="image/png" href="{% static 'img/icon-white.png' %}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{% static 'img/icon-white.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+    rel="stylesheet">
 
   <style>
     :root {
@@ -138,6 +139,7 @@
       background: var(--bg);
       color: var(--text);
     }
+
     body {
       transition: background var(--transition), color var(--transition);
     }
@@ -177,7 +179,7 @@
     .brand-block {
       display: block;
     }
-    
+
     .brand-logo {
       width: 100%;
       height: 100%;
@@ -185,8 +187,13 @@
       display: none;
     }
 
-    html[data-theme="light"] .brand-logo-light { display: block; }
-    html[data-theme="dark"] .brand-logo-dark { display: block; }
+    html[data-theme="light"] .brand-logo-light {
+      display: block;
+    }
+
+    html[data-theme="dark"] .brand-logo-dark {
+      display: block;
+    }
 
     .tasks-panel {
       position: fixed;
@@ -804,7 +811,7 @@
     .data-table tbody tr:hover {
       background: var(--data-table-hover);
     }
-    
+
     .data-table tbody td {
       padding: 13px 12px;
       border-top: 1px solid var(--border);
@@ -923,6 +930,7 @@
       color: var(--text);
       border: 2px solid var(--border);
     }
+
     .btn-secondary:hover {
       transition: 0.2s ease-in-out;
       border: 2px solid var(--primary-hover);
@@ -960,7 +968,7 @@
       background: var(--priority-high-bg-hover);
       color: var(--priority-high-text-hover);
     }
-    
+
     .btn-secondary-open,
     .btn-secondary-closed,
     .btn-secondary-archive {
@@ -971,10 +979,12 @@
       background: var(--success-soft);
       color: var(--success-text);
     }
-    .btn-secondary-closed:hover{
+
+    .btn-secondary-closed:hover {
       background: var(--danger-soft);
       color: var(--danger-text);
     }
+
     .btn-secondary-archive:hover {
       background: var(--info-soft);
       color: var(--info-text);
@@ -1007,29 +1017,29 @@
       transition: background var(--transition), color var(--transition);
       border: 1px solid var(--border);
     }
-    
+
     .icon-btn-sm svg {
       width: 14px;
       height: 14px;
     }
-    
+
     .icon-btn-sm:hover {
       box-shadow: inset 1px 2px 3px var(--primary-hover);
       background: var(--priority-low-bg-hover);
       color: var(--primary-soft-text);
       transition: 0.2s ease-in-out;
     }
-    
+
     .icon-btn-sm.danger {
       box-shadow: inset 1px 2px 3px rgba(0, 0, 0, 0.650);
       border-radius: 20px;
       border: 1px solid var(--border);
       color: var(--danger-text);
     }
-    
+
     .icon-btn-sm.danger:hover {
       /* border: 1px solid var(--danger-text); */
-      box-shadow:inset 1px 2px 3px var(--danger-text);
+      box-shadow: inset 1px 2px 3px var(--danger-text);
       background: var(--priority-high-bg-hover);
       color: var(--danger-text);
       filter: contrast(1.1);
@@ -1387,6 +1397,63 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239C9B90' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     }
 
+    /* ---- Sitewide cursor-glow on buttons (centralized change) ---- */
+    .btn,
+    .icon-btn-sm,
+    .action-button,
+    .icon-action,
+    .create-menu-trigger,
+    .search-btn,
+    .decision-pill,
+    .skill-add-btn,
+    .avatar-trigger {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .btn::before,
+    .icon-btn-sm::before,
+    .icon-action::before,
+    .create-menu-trigger::before,
+    .search-btn::before,
+    .decision-pill::before {
+      content: "";
+      position: absolute;
+      top: var(--glow-y, 50%);
+      left: var(--glow-x, 50%);
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.35), transparent 70%);
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 0;
+    }
+
+    html[data-theme="light"] .btn-secondary::before,
+    html[data-theme="light"] .icon-btn-sm::before {
+      background: radial-gradient(circle, rgba(47, 95, 224, 0.14), transparent 70%);
+    }
+
+    .btn:hover::before,
+    .icon-btn-sm:hover::before,
+    .icon-action:hover::before,
+    .create-menu-trigger:hover::before,
+    .search-btn:hover::before,
+    .decision-pill:hover::before {
+      opacity: 1;
+    }
+
+    .btn>*,
+    .icon-btn-sm>*,
+    .icon-action>*,
+    .create-menu-trigger>* {
+      position: relative;
+      z-index: 1;
+    }
+
     @media (max-width: 1200px) {
 
       .grid-3,
@@ -1441,11 +1508,12 @@
       }
     }
   </style>
-
 {% block extra_head %}
+
 {% endblock %}
 </head>
 <body>
+
 <!-- Reusable icon defs (referenced via <use>) kept minimal; icons below are inlined directly per-usage -->
 {% if user.is_authenticated %}
 <div class="app-shell">
@@ -1627,6 +1695,30 @@
     try { localStorage.setItem(NOTIF_KEY, JSON.stringify(list)); } catch (e) {}
     return list;
   }
+
+  function attachGlow(selector) {
+    document.querySelectorAll(selector).forEach(function (el) {
+      if (el.dataset.glowBound) return;
+      el.dataset.glowBound = "1";
+      el.addEventListener('mousemove', function (e) {
+        var rect = el.getBoundingClientRect();
+        el.style.setProperty('--glow-x', (e.clientX - rect.left) + 'px');
+        el.style.setProperty('--glow-y', (e.clientY - rect.top) + 'px');
+      });
+    });
+  }
+
+  
+  function bindAll() {
+    attachGlow('.btn, .icon-btn-sm, .action-button, .icon-action, .create-menu-trigger, .search-btn, .decision-pill, .skill-add-btn, .avatar-trigger');
+  }
+
+  document.addEventListener('DOMContentLoaded', bindAll);
+
+
+  // Re-bind after any AJAX table swap (Job Roles / Candidates live search, task rows, etc.)
+  var observer = new MutationObserver(function () { bindAll(); });
+  document.addEventListener('DOMContentLoaded', function () {observer.observe(document.body, { childList: true, subtree: true }) } );
 
   function saveNotifications(list) {
     try { localStorage.setItem(NOTIF_KEY, JSON.stringify(list)); } catch (e) {}

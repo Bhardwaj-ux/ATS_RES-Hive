@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "apps.dashboard",
     "apps.tasks",
     "apps.folks",
+    "apps.interviews",
 ]
 
 
